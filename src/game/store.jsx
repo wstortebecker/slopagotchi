@@ -3,6 +3,16 @@ import * as engine from './engine.js'
 import { actionQuip, moodQuip, HATCH_QUIPS, pickQuip } from './quips.js'
 
 const STORAGE_KEY = 'slop.state'
+const SHELL_PREF_KEY = 'slop.shell'
+
+/* Remembered shell preference for visitors who haven't hatched yet. */
+export function getStoredShell() {
+  try {
+    return localStorage.getItem(SHELL_PREF_KEY) || 'bubblegum'
+  } catch {
+    return 'bubblegum'
+  }
+}
 
 /* Shell colour drives the whole app accent (ported from the DS theme.js). */
 export const SHELL_THEME = {
@@ -51,7 +61,7 @@ const PetContext = createContext(null)
 export function PetProvider({ children }) {
   const [pet, setPet] = useState(() => load())
   const [message, setMessage] = useState('')
-  const [justActed, setJustActed] = useState(0)
+  const [reaction, setReaction] = useState({ id: 0, kind: null })
   const lastActionAt = useRef(0)
 
   const mood = useMemo(() => (pet ? engine.deriveMood(pet) : 'happy'), [pet])
@@ -94,28 +104,45 @@ export function PetProvider({ children }) {
     return () => clearInterval(id)
   }, [pet])
 
-  const run = useCallback((fn, { affection = false } = {}) => {
+  const run = useCallback((fn, kind = null) => {
     lastActionAt.current = Date.now()
     setPet((prev) => {
       if (!prev) return prev
       const { next, event } = fn(prev)
       const quip = actionQuip(event)
       if (quip) setMessage(quip)
+      // Trigger the on-device reaction only when the action actually landed.
+      if (kind && event !== 'dead') setReaction((r) => ({ id: r.id + 1, kind }))
       return next
     })
-    if (affection) setJustActed((n) => n + 1)
   }, [])
 
   const actions = useMemo(
     () => ({
-      feed: () => run(engine.feed, { affection: true }),
-      clean: () => run(engine.clean),
-      praise: () => run(engine.praise, { affection: true }),
+      feed: () => run(engine.feed, 'feed'),
+      clean: () => run(engine.clean, 'clean'),
+      praise: () => run(engine.praise, 'praise'),
       shipSlop: (lines) => run((s) => engine.shipSlop(s, lines)),
       revive: () => run((s) => engine.revive(s)),
+      // Change the shell colour — retints the whole site, updates a live pet,
+      // and remembers the choice for later.
+      setShell: (shell) => {
+        applyShellTheme(shell)
+        try {
+          localStorage.setItem(SHELL_PREF_KEY, shell)
+        } catch {
+          /* ignore */
+        }
+        setPet((prev) => (prev ? { ...prev, shell } : prev))
+      },
       hatch: (config) => {
         const fresh = engine.createPet(config)
         applyShellTheme(fresh.shell)
+        try {
+          localStorage.setItem(SHELL_PREF_KEY, fresh.shell)
+        } catch {
+          /* ignore */
+        }
         setPet(fresh)
         setMessage(pickQuip(HATCH_QUIPS, 'hatch'))
       },
@@ -123,7 +150,7 @@ export function PetProvider({ children }) {
         setPet(null)
         setMessage('')
         save(null)
-        applyShellTheme('bubblegum')
+        applyShellTheme(getStoredShell())
       },
     }),
     [run]
@@ -140,10 +167,10 @@ export function PetProvider({ children }) {
       meters: m,
       level: pet ? engine.levelFor(pet.xp) : 1,
       message,
-      justActed,
+      reaction,
       actions,
     }
-  }, [pet, mood, message, justActed, actions])
+  }, [pet, mood, message, reaction, actions])
 
   return <PetContext.Provider value={value}>{children}</PetContext.Provider>
 }

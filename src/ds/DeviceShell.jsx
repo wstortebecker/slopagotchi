@@ -24,6 +24,7 @@ export default function DeviceShell({
   fill = false,
   label = 'SLOPAGOTCHI',
   buttons = ['A', 'B', 'C'],
+  buttonTitles = [],
   onA,
   onB,
   onC,
@@ -112,7 +113,8 @@ export default function DeviceShell({
               key={`${b}-${i}`}
               type="button"
               onClick={handlers[i]}
-              aria-label={typeof b === 'string' ? b : `Button ${i + 1}`}
+              title={buttonTitles[i] || undefined}
+              aria-label={buttonTitles[i] || (typeof b === 'string' ? b : `Button ${i + 1}`)}
               style={{
                 width: size,
                 height: size,

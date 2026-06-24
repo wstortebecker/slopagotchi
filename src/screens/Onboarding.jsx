@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card, DeviceShell, LcdScreen, Pet, PixelIcon, SPECIES_LIST } from '../ds/index.js'
 import Logo from '../ds/Logo.jsx'
-import { SHELL_LIST, SHELL_THEME, applyShellTheme, usePet } from '../game/store.jsx'
+import { SHELL_LIST, SHELL_THEME, applyShellTheme, getStoredShell, usePet } from '../game/store.jsx'
 
 const STEPS = ['connect', 'species', 'shell', 'name']
 
@@ -69,7 +69,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(0)
   const [source, setSource] = useState('github')
   const [species, setSpecies] = useState('blip')
-  const [shell, setShell] = useState('bubblegum')
+  const [shell, setShell] = useState(() => getStoredShell())
   const [name, setName] = useState('')
 
   // Keep the app accent in sync with the previewed shell, starting from the
