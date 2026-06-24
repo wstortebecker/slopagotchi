@@ -3,7 +3,9 @@ import { waitUntil } from "@vercel/functions";
 import { handleJoin } from "../lib/api/join";
 import { clientIpFromHeader } from "../lib/api/http";
 
-export const config = { runtime: "nodejs" };
+// Node runtime (uses node:crypto/zlib) is the default; raise the budget so the
+// waitUntil backfill has room. Hobby caps at 60; raise to 300 on Pro.
+export const maxDuration = 60;
 
 /** POST /api/join — register a developer into a team and start a backfill. */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

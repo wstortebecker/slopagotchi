@@ -1,8 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { handleStatus } from "../../lib/api/status";
 
-export const config = { runtime: "nodejs" };
-
 /** GET /api/status/[handle] — join/backfill progress for the landing poll. */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
