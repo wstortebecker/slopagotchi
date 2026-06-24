@@ -7,8 +7,8 @@ import { SHELL_LIST, SHELL_THEME, applyShellTheme, getStoredShell, usePet } from
 const STEPS = ['connect', 'species', 'shell', 'name']
 
 const SOURCES = [
-  { id: 'github', label: 'GitHub', note: 'where the slop usually happens' },
-  { id: 'tangled', label: 'tangled.org', note: 'decentralised git. it still sees everything.' },
+  { id: 'github', label: 'GitHub' },
+  { id: 'tangled', label: 'Tangled' },
 ]
 
 const SHELL_LABEL = {
@@ -165,10 +165,7 @@ export default function Onboarding() {
                             >
                               {on && <PixelIcon name="check" scale={2.5} color="#fff" />}
                             </span>
-                            <span style={{ flex: 1 }}>
-                              <span style={{ display: 'block', fontWeight: 800, fontSize: 15, color: 'var(--ink)' }}>{src.label}</span>
-                              <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-3)', fontWeight: 600 }}>{src.note}</span>
-                            </span>
+                            <span style={{ flex: 1, fontWeight: 800, fontSize: 15, color: 'var(--ink)' }}>{src.label}</span>
                           </button>
                         )
                       })}
