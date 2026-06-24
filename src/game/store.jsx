@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import * as engine from './engine.js'
 import { actionQuip, moodQuip, HATCH_QUIPS, pickQuip } from './quips.js'
+import { joinTeam } from '../api/client.js'
 
 const STORAGE_KEY = 'slop.state'
 const SHELL_PREF_KEY = 'slop.shell'
@@ -145,6 +146,18 @@ export function PetProvider({ children }) {
         }
         setPet(fresh)
         setMessage(pickQuip(HATCH_QUIPS, 'hatch'))
+      },
+      // Link the live pet to a real Tangled account and register it into a team
+      // zoo on the backend. Returns the API envelope so callers can surface
+      // progress; failures are non-fatal (the local pet still lives).
+      connect: async ({ handle, team, source = 'tangled' }) => {
+        const h = String(handle || '').trim().replace(/^@/, '')
+        const t = String(team || '').trim().toLowerCase()
+        if (h || t) {
+          setPet((prev) => (prev ? { ...prev, handle: h, team: t, source } : prev))
+        }
+        if (!h || !t) return { ok: false, status: 0, data: {}, error: 'handle and team required' }
+        return joinTeam({ handle: h, team: t })
       },
       resetEgg: () => {
         setPet(null)
