@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="g" cx="32%" cy="14%" r="80%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+      <stop offset="55%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- egg shell -->
+  <path d="M32 3 C18 3 9 22 9 38 a23 23 0 0 0 46 0 C55 22 46 3 32 3 Z" fill="#f0408a"/>
+  <path d="M32 3 C18 3 9 22 9 38 a23 23 0 0 0 46 0 C55 22 46 3 32 3 Z" fill="url(#g)"/>
+  <!-- LCD screen -->
+  <rect x="19" y="24" width="26" height="20" rx="3" fill="#c3cba0"/>
+  <!-- face -->
+  <rect x="24" y="29" width="4" height="4" fill="#20251a"/>
+  <rect x="36" y="29" width="4" height="4" fill="#20251a"/>
+  <rect x="28" y="37" width="8" height="3" fill="#20251a"/>
+</svg>

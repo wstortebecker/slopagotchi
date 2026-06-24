@@ -1,0 +1,127 @@
+/* ============================================================================
+   Layout-level responsive rules. Visual styling stays inline with tokens;
+   this file only owns things inline styles can't express (media queries, grid
+   templates that collapse on small screens).
+   ========================================================================== */
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  box-sizing: border-box;
+}
+
+.container-narrow {
+  width: 100%;
+  max-width: var(--container-narrow);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  box-sizing: border-box;
+}
+
+/* ---- Landing hero ---- */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 48px;
+  align-items: center;
+}
+
+/* ---- Generic auto-fit card grids ---- */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.states-strip {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+}
+
+.zoo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+
+/* ---- Personal dashboard ---- */
+.play-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+  gap: 40px;
+  align-items: start;
+}
+
+@media (max-width: 1040px) {
+  .zoo-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .states-strip {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 920px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  .play-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+
+@media (max-width: 720px) {
+  .zoo-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 460px) {
+  .zoo-grid {
+    grid-template-columns: 1fr;
+  }
+  .states-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Reusable bits */
+.section-label {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.pixel-display {
+  font-family: var(--font-pixel);
+  line-height: 1.32;
+  color: var(--ink);
+}
+
+/* ---- Onboarding card ---- */
+.onb-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) 1.2fr;
+  min-height: 380px;
+}
+
+@media (max-width: 680px) {
+  .onb-grid {
+    grid-template-columns: 1fr;
+  }
+  .onb-preview {
+    border-right: none !important;
+    border-bottom: 1px solid var(--line);
+  }
+}
