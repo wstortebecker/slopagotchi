@@ -23,13 +23,45 @@ async function request(path, init) {
   }
 }
 
-/** Register a Tangled handle into a team zoo and start its backfill. */
+/**
+ * Register a Tangled handle for scoring and start its backfill. `team` is
+ * optional — omit it for a personal-roster add (no team membership).
+ */
 export function joinTeam({ handle, team }) {
   return request('/join', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ handle, team }),
+    body: JSON.stringify(team ? { handle, team } : { handle }),
   })
+}
+
+/**
+ * Score a public GitHub user's PRs into a standalone pet (no atproto account,
+ * no proof). Returns `{ subject }` — `github:<login>` — used to fetch the pet.
+ */
+export function connectGithubStandalone({ githubUsername }) {
+  return request('/github/standalone', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ githubUsername }),
+  })
+}
+
+/**
+ * Optional upgrade: link + prove a GitHub username to a Tangled handle/DID so
+ * its PRs feed the same pet as the developer's Tangled pulls.
+ */
+export function linkGithub({ handle, did, githubUsername }) {
+  return request('/github/link', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ handle, did, githubUsername }),
+  })
+}
+
+/** The backend pet/receipt key for a standalone GitHub login. */
+export function githubSubjectKey(githubUsername) {
+  return `github:${String(githubUsername || '').trim().replace(/^@/, '').toLowerCase()}`
 }
 
 /** Poll join/backfill progress: joining → backfilling → done (or unknown). */

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Card } from '../ds/index.js'
 import { usePet } from '../game/store.jsx'
-import { getPet } from '../api/client.js'
+import { getPet, githubSubjectKey } from '../api/client.js'
 
 /* Renders a round's score delta vs. the previous round (▼ = less slop = good). */
 function Delta({ delta }) {
@@ -25,16 +25,19 @@ function Delta({ delta }) {
 export default function ReceiptPanel() {
   const { pet } = usePet()
   const handle = pet?.handle || ''
+  // Standalone GitHub pets are keyed to `github:<login>` on the backend, not a
+  // resolvable handle; everything else looks up by handle directly.
+  const lookupKey = handle ? (pet?.source === 'github' ? githubSubjectKey(handle) : handle) : ''
   const [state, setState] = useState({ status: handle ? 'loading' : 'unlinked', data: null })
 
   useEffect(() => {
-    if (!handle) {
+    if (!lookupKey) {
       setState({ status: 'unlinked', data: null })
       return undefined
     }
     let alive = true
     const load = async () => {
-      const res = await getPet(handle)
+      const res = await getPet(lookupKey)
       if (!alive) return
       if (res.ok) setState({ status: 'ok', data: res.data })
       else if (res.status === 404) setState({ status: 'pending', data: null })
@@ -47,7 +50,7 @@ export default function ReceiptPanel() {
       alive = false
       window.removeEventListener('focus', onFocus)
     }
-  }, [handle])
+  }, [lookupKey])
 
   const prs = state.data?.prs ?? []
   const reasons = state.data?.latestReasons ?? []

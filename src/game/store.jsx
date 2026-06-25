@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import * as engine from './engine.js'
 import { actionQuip, moodQuip, HATCH_QUIPS, pickQuip } from './quips.js'
-import { joinTeam } from '../api/client.js'
+import { joinTeam, connectGithubStandalone } from '../api/client.js'
 
 const STORAGE_KEY = 'slop.state'
 const SHELL_PREF_KEY = 'slop.shell'
@@ -158,6 +158,16 @@ export function PetProvider({ children }) {
         }
         if (!h || !t) return { ok: false, status: 0, data: {}, error: 'handle and team required' }
         return joinTeam({ handle: h, team: t })
+      },
+      // Link the live pet to a public GitHub account (standalone — no atproto
+      // account, no proof) and start scoring its PRs on the backend. The pet's
+      // handle becomes the github username; its receipt is keyed to
+      // `github:<login>`. Non-fatal: the local pet lives regardless.
+      connectGithub: async ({ githubUsername }) => {
+        const u = String(githubUsername || '').trim().replace(/^@/, '')
+        if (!u) return { ok: false, status: 0, data: {}, error: 'github username required' }
+        setPet((prev) => (prev ? { ...prev, handle: u, team: '', source: 'github' } : prev))
+        return connectGithubStandalone({ githubUsername: u })
       },
       // Set (or change) the zoo team without linking your own account — lets a
       // local player start a team zoo and populate it with other people's pets.
