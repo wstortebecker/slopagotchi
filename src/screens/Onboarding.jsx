@@ -70,6 +70,7 @@ export default function Onboarding() {
   const [source, setSource] = useState('tangled')
   const [handle, setHandle] = useState('')
   const [team, setTeam] = useState('')
+  const [githubUsername, setGithubUsername] = useState('')
   const [species, setSpecies] = useState('blip')
   const [shell, setShell] = useState(() => getStoredShell())
   const [name, setName] = useState('')
@@ -90,20 +91,24 @@ export default function Onboarding() {
 
   const cleanHandle = handle.trim().replace(/^@/, '')
   const cleanTeam = team.trim().toLowerCase()
+  const cleanGithub = githubUsername.trim().replace(/^@/, '')
   const willConnect = source === 'tangled' && cleanHandle && cleanTeam
+  const willConnectGithub = source === 'github' && cleanGithub
+  const connectedHandle = willConnect ? cleanHandle : willConnectGithub ? cleanGithub : ''
 
   const hatch = () => {
     actions.hatch({
       name: name.trim() || 'Mossy',
       species,
       shell,
-      handle: willConnect ? cleanHandle : '',
+      handle: connectedHandle,
       team: willConnect ? cleanTeam : '',
       source,
     })
-    // Fire-and-forget: register with the backend zoo. The local pet hatches
+    // Fire-and-forget: register with the backend. The local pet hatches
     // regardless, so a missing/unconfigured backend never blocks onboarding.
     if (willConnect) actions.connect({ handle: cleanHandle, team: cleanTeam, source })
+    else if (willConnectGithub) actions.connectGithub({ githubUsername: cleanGithub })
     navigate('/play')
   }
 
@@ -221,10 +226,24 @@ export default function Onboarding() {
                         </p>
                       </div>
                     ) : (
-                      <p style={{ marginTop: 16, fontSize: 13, fontWeight: 600, color: 'var(--ink-3)' }}>
-                        GitHub scoring is on the way. For now your pet plays locally — pick{' '}
-                        <strong>tangled.org</strong> to connect a real account and join a team zoo.
-                      </p>
+                      <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-3)' }}>your github username</span>
+                          <input
+                            value={githubUsername}
+                            onChange={(e) => setGithubUsername(e.target.value)}
+                            placeholder="octocat"
+                            autoComplete="off"
+                            spellCheck={false}
+                            style={connectInputStyle}
+                          />
+                        </label>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-3)', margin: 0 }}>
+                          {willConnectGithub
+                            ? "we'll score your recent public pull requests — no account or login needed, since it's all public anyway."
+                            : 'leave this blank to just play with a local pet — no scoring, no judgment. (well, less judgment.)'}
+                        </p>
+                      </div>
                     )}
                   </div>
                 )}

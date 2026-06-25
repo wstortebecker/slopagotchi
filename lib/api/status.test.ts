@@ -13,11 +13,12 @@ vi.mock("../store", async (orig) => {
 });
 
 import { handleStatus } from "./status";
-import { getDidForHandle, getBackfillStatus } from "../store";
+import { getDidForHandle, getBackfillStatus, getDiagnostics } from "../store";
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getDidForHandle).mockResolvedValue("did:plc:dev");
+  vi.mocked(getDiagnostics).mockResolvedValue([]);
 });
 
 describe("handleStatus", () => {
@@ -50,5 +51,18 @@ describe("handleStatus", () => {
     vi.mocked(getBackfillStatus).mockResolvedValue("done");
     const res = await handleStatus("@Alice");
     expect(res.body).toMatchObject({ handle: "alice", team: "acme", diagnosticCount: 0 });
+  });
+
+  it("infers a standalone github subject's state from its diagnostics (none yet)", async () => {
+    vi.mocked(getDiagnostics).mockResolvedValue([]);
+    const res = await handleStatus("github:OctoCat");
+    expect(res.body).toMatchObject({ state: "backfilling", subject: "github:octocat" });
+    expect(getDidForHandle).not.toHaveBeenCalled();
+  });
+
+  it("reports a standalone github subject done once diagnostics have landed", async () => {
+    vi.mocked(getDiagnostics).mockResolvedValue([{ score: 10, createdAt: "2026-06-25T00:00:00Z" }]);
+    const res = await handleStatus("github:octocat");
+    expect((res.body as { state: string }).state).toBe("done");
   });
 });
