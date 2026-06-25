@@ -12,6 +12,7 @@ import Paywall from './screens/Paywall.jsx'
 import Personal from './screens/Personal.jsx'
 import Zoo from './screens/Zoo.jsx'
 import Scoreboard from './screens/Scoreboard.jsx'
+import AdminDashboard from './screens/AdminDashboard.jsx'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -139,6 +140,14 @@ export default function App() {
           }
         />
         <Route path="/scoreboard" element={<Scoreboard />} />
+        <Route
+          path="/admin"
+          element={
+            <RequireAuth>
+              <AdminDashboard />
+            </RequireAuth>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

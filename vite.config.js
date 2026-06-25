@@ -7,6 +7,7 @@ function devApi() {
   const routes = {
     '/api/checkout': './api/checkout.js',
     '/api/confirm': './api/confirm.js',
+    '/api/metrics': './api/metrics.js',
   }
   return {
     name: 'dev-stripe-api',
@@ -30,7 +31,7 @@ function devApi() {
 export default defineConfig(({ mode }) => {
   // Expose server-side secrets to the dev API handlers via process.env.
   const env = loadEnv(mode, process.cwd(), '')
-  for (const key of ['STRIPE_SECRET_KEY', 'STRIPE_PRICE_ID', 'CLERK_SECRET_KEY', 'PUBLIC_BASE_URL']) {
+  for (const key of ['STRIPE_SECRET_KEY', 'STRIPE_PRICE_ID', 'CLERK_SECRET_KEY', 'ADMIN_EMAILS', 'PUBLIC_BASE_URL']) {
     if (env[key]) process.env[key] = env[key]
   }
 
