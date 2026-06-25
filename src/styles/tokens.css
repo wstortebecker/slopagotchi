@@ -27,11 +27,12 @@
   --ink: #1c1f17;
   --ink-2: #44493b;
   --ink-3: #767c69;
-  --paper: #fbfaf2;
+  --paper: #faf9f6;
   --paper-2: #f1efe2;
   --paper-3: #e7e4d4;
   --line: #d9d6c5;
   --line-2: #c7c3ad;
+  --divider: rgba(0, 0, 0, 0.12); /* thin column rule, à la the reference layout */
 
   /* ---- Brand accents ---- */
   --accent: #f0408a;

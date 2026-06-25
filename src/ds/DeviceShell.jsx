@@ -99,7 +99,14 @@ export default function DeviceShell({
         {label}
       </div>
 
-      <LcdScreen theme={theme} lit={lit} fill={fill} height={width * 0.62} style={{ marginBottom: width * 0.07 }}>
+      <LcdScreen
+        theme={theme}
+        lit={lit}
+        fill={fill}
+        width={Math.round(width * 0.58)}
+        height={Math.round(width * 0.5)}
+        style={{ marginBottom: width * 0.07, marginLeft: 'auto', marginRight: 'auto', width: 'fit-content' }}
+      >
         {children}
       </LcdScreen>
 
