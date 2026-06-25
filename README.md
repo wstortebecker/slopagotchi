@@ -20,7 +20,9 @@ A complete, interactive single-page app — not mocks:
   praise it, clean its slop, or give in and **ship AI slop** and watch it wilt.
   Live vitals, a slop tally, and a rolling incident log.
 - **The Zoo** (`/zoo`) — every pet on the team, ranked by slop shipped today, with
-  your own pet spliced in and highlighted.
+  your own pet spliced in and highlighted. When you've connected a real Tangled
+  account, this shows your **actual team zoo** scored from real pull requests;
+  otherwise it falls back to the demo roster.
 
 ### The simulation
 
@@ -37,7 +39,97 @@ A complete, interactive single-page app — not mocks:
   XP / levels, and a day rollover.
 - State persists to `localStorage`; the pet's shell colour themes the app accent.
 
+## The real backend (scoring pipeline)
+
+The local sim is the toy. The **real** Slopagotchi scores your actual
+[Tangled](https://tangled.org) pull requests for *slop* — careless overbuild, weak
+tests, scope sprawl — using an open model on Featherless, and publishes the score
+and a receipt as public ATProto records. That whole pipeline now ships in this repo
+as **Vercel serverless functions** alongside the Vite SPA.
+
+```
+api/                         thin Vercel function adapters (VercelRequest/Response)
+  join.ts                    POST  /api/join              register + start backfill
+  status/[handle].ts         GET   /api/status/:handle    join/backfill progress
+  cron/poll.ts               GET   /api/cron/poll          secured re-score (cron)
+  zoo/[team].ts              GET   /api/zoo/:team          a team's scored pets (JSON)
+  pet/[handle].ts            GET   /api/pet/:handle        one pet + slop receipt (JSON)
+  github/standalone.ts       POST  /api/github/standalone  score a public GitHub user (no account)
+  github/link.ts             POST  /api/github/link        prove + link a GitHub user to a DID
+lib/                         framework-agnostic logic (fully unit-tested)
+  api/                       pure core handlers → { status, body }
+  atproto/                   handle→DID→PDS resolve, read pulls, write records
+  github/                    REST client, no-OAuth ownership proof, PR read layer
+  scorer/                    diff prep → Featherless → parse/validate (Zod)
+  pipeline.ts · health.ts · receipt.ts · store.ts (Upstash Redis)
+```
+
+Each route's logic lives as a pure, testable core in `lib/api/*`; the `/api`
+adapters only translate the HTTP envelope and run background work via
+`@vercel/functions` `waitUntil`. The frontend talks to these through
+`src/api/client.js` (soft-failing fetch) and `src/api/mapping.js` (health band →
+creature mood). If the backend env isn't wired, every endpoint degrades gracefully
+and the UI stays on its local simulation.
+
+### How the two halves connect
+
+- **Onboarding** collects a Tangled handle + team and calls `POST /api/join`,
+  or a GitHub username and calls `POST /api/github/standalone`.
+- **The Zoo** loads `GET /api/zoo/:team` and renders real, scored pets.
+- **The play screen** shows a live **slop receipt** from `GET /api/pet/:handle`.
+
+### GitHub PRs (not just Tangled)
+
+Scoring is **source-agnostic**: the same pipeline scores Tangled pull rounds and
+GitHub PRs, and publishes the same `app.slopgotchi.*` records (tagged with their
+`source`). Two ways in:
+
+- **Standalone** (the low-friction default) — `POST /api/github/standalone`
+  `{ githubUsername }`. No atproto account, no proof: the data is public and the
+  subject *is* the GitHub identity, so the pet is keyed to `github:<login>`.
+  Set `GITHUB_TOKEN` to enable; without it the route 503s and the cron skips
+  GitHub. The pet + receipt are then served by `GET /api/pet/github:<login>`.
+- **Linked** (optional upgrade) — `POST /api/github/link` `{ handle|did,
+  githubUsername }`. A no-OAuth ownership proof (your handle/DID in your GitHub
+  bio or a public `slopgotchi-verify.md` gist) links the username to your DID
+  under first-prover-wins, so GitHub PRs feed the *same* pet as your Tangled
+  pulls. Linking is unify-going-forward: the username drops out of the standalone
+  poll set and new scores accrue under the DID.
+
+The daily cron drains Tangled and GitHub on **separate round budgets** so neither
+source starves the other.
+
+### Environment
+
+The Vite frontend needs **no** env. The `/api` functions need the vars in
+`.env.example` (Upstash Redis, Featherless, an ATProto service account, a
+`CRON_SECRET`). Add them to the Vercel project (or `.env.local` for `vercel dev`).
+Tests run without any of them — unit tests mock, integration tests skip.
+
 ## Run it
+
+```bash
+npm install
+npm run dev       # Vite only (frontend) → http://localhost:5273
+npm run dev:full  # vercel dev → frontend + /api functions together
+```
+
+```bash
+npm test          # vitest (frontend + backend), 138 tests
+npm run typecheck # tsc --noEmit over lib/ + api/
+npm run build     # production build → dist/
+npm run preview   # serve the build
+```
+
+### Deploy
+
+Push to Vercel (framework: **Vite**, set in `vercel.json`). The SPA builds to
+`dist/`; `/api/*` deploys as Node serverless functions automatically. Set the
+backend env vars in the dashboard, then provision Redis with
+`vercel integration add upstash/upstash-kv`. `vercel.json` ships a once-daily cron
+hitting `/api/cron/poll` (Hobby-safe); Vercel Cron sends the `CRON_SECRET` bearer
+automatically. For per-minute polling on Pro, change the `crons` schedule to
+`* * * * *`. Idempotency on `(PR, round)` makes repeated invocations safe.
 
 ```bash
 npm install
@@ -56,10 +148,13 @@ src/
   ds/        the design system, ported to clean React modules
              (PixelSprite, Pet + PetScene, PixelIcon, Button, Card,
               StatMeter, StatusBadge, LcdScreen, DeviceShell, Logo)
+  api/       client.js (fetch the /api functions) · mapping.js (health → mood)
   game/      engine.js · store.jsx · quips.js · zoo.js  (the sim + voice + data)
   screens/   Landing · Onboarding · Personal · Zoo
-  components/ TopBar · PetConsole · VitalsPanel · ZooCard
+  components/ TopBar · PetConsole · VitalsPanel · ZooCard · ReceiptPanel
   styles/    tokens.css (design tokens) · global.css (motion) · screens.css (layout)
+api/         Vercel serverless functions (the backend HTTP surface)
+lib/         framework-agnostic backend logic + its unit tests
 ```
 
 The design-system components and tokens are reconstructed faithfully from the

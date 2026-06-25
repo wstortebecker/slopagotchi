@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "crons": [
+    {
+      "path": "/api/cron/poll",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

@@ -5,6 +5,8 @@ dist-ssr
 .DS_Store
 .context
 .vite
+.vercel
 .env
 .env.*
 !.env.example
+*.tsbuildinfo

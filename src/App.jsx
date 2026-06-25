@@ -11,6 +11,7 @@ import Onboarding from './screens/Onboarding.jsx'
 import Paywall from './screens/Paywall.jsx'
 import Personal from './screens/Personal.jsx'
 import Zoo from './screens/Zoo.jsx'
+import Scoreboard from './screens/Scoreboard.jsx'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -137,6 +138,7 @@ export default function App() {
             </Gated>
           }
         />
+        <Route path="/scoreboard" element={<Scoreboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

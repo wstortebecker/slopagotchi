@@ -6,10 +6,11 @@ import { usePet } from '../game/store.jsx'
 
 const TABS = [
   { id: 'mine', label: 'My Pet', to: '/play' },
-  { id: 'zoo', label: 'The Zoo', to: '/zoo' },
+  { id: 'zoo', label: 'My Zoo', to: '/zoo' },
+  { id: 'scoreboard', label: 'Scoreboard', to: '/scoreboard' },
 ]
 
-export default function TopBar({ active = 'mine' }) {
+export default function TopBar({ active = 'mine', className = '' }) {
   const navigate = useNavigate()
   const { pet, level } = usePet()
   const streak = pet?.streakDays ?? 0
@@ -17,14 +18,14 @@ export default function TopBar({ active = 'mine' }) {
 
   return (
     <header
+      className={className}
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 28px',
         height: 64,
-        background: 'var(--surface-card)',
-        borderBottom: '2px solid var(--line)',
+        background: 'var(--paper)',
         position: 'sticky',
         top: 0,
         zIndex: 'var(--z-nav)',

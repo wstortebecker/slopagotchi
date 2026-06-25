@@ -42,11 +42,19 @@ export function todayStr(now = Date.now()) {
 
 /* ---------- Lifecycle ---------- */
 
-export function createPet({ name = 'Mossy', species = 'blip', shell = 'bubblegum' } = {}, now = Date.now()) {
+export function createPet(
+  { name = 'Mossy', species = 'blip', shell = 'bubblegum', handle = '', team = '', source = '' } = {},
+  now = Date.now(),
+) {
   return {
     name,
     species,
     shell,
+    // Optional link to a real Tangled account scored by the backend. Blank for
+    // a purely local/demo pet; set when the player connects during onboarding.
+    handle,
+    team,
+    source,
     bornAt: now,
     lastTick: now,
     day: todayStr(now),
@@ -250,6 +258,16 @@ export function shipSlop(state, lines) {
 }
 
 export function revive(state, now = Date.now()) {
-  const fresh = createPet({ name: state.name, species: state.species, shell: state.shell }, now)
+  const fresh = createPet(
+    {
+      name: state.name,
+      species: state.species,
+      shell: state.shell,
+      handle: state.handle,
+      team: state.team,
+      source: state.source,
+    },
+    now,
+  )
   return { next: { ...fresh, streakDays: 0 }, event: 'revive' }
 }

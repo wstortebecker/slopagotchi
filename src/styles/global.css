@@ -235,6 +235,42 @@ p {
   animation: slop-fade-up var(--dur-slow) var(--ease-snap) both;
 }
 
+@keyframes slop-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Page-enter: components reveal top-to-bottom, staggered by --reveal-i. */
+.reveal {
+  animation: slop-fade-up var(--dur-slow) var(--ease-snap) both;
+  animation-delay: calc(var(--reveal-i, 0) * 180ms);
+}
+/* Opacity-only variant for sticky elements (transform would break sticky). */
+.reveal-fade {
+  animation: slop-fade-in var(--dur-base) ease both;
+  animation-delay: calc(var(--reveal-i, 0) * 180ms);
+}
+
+/* Refined fade + lift + settle for cascading grids (scoreboard tiles). */
+@keyframes slop-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.reveal-card {
+  animation: slop-reveal 520ms var(--ease-snap) both;
+  animation-delay: calc(var(--reveal-i, 0) * 60ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
