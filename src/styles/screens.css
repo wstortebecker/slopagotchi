@@ -86,6 +86,11 @@
   display: flex;
   flex: 1;
   min-height: 0;
+  /* Lock the dashboard to the viewport (minus the 64px TopBar) so each column
+     scrolls inside its own pane. Without this the flex row grows to its tallest
+     column, and as the right-hand panels load their data the centred pet in the
+     middle pane gets pushed down. */
+  height: calc(100vh - 64px);
 }
 .dash3 > .col {
   padding: 40px 32px;
@@ -117,6 +122,8 @@
 @media (max-width: 1040px) {
   .dash3 {
     flex-direction: column;
+    /* Stacked layout scrolls the document normally — don't trap it at viewport height. */
+    height: auto;
   }
   .dash3 > .col {
     flex: none;
