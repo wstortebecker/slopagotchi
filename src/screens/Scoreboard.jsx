@@ -70,7 +70,7 @@ export default function Scoreboard() {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
       <TopBar active="scoreboard" />
       <main className="container" style={{ padding: '36px 24px 72px', flex: 1 }}>
-        <Card padding={0} style={{ overflow: 'hidden' }}>
+        <Card padding={0} radius={0} style={{ overflow: 'hidden', border: 'none' }}>
           {/* header */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start', justifyContent: 'space-between', padding: '22px 24px 0' }}>
             <div>

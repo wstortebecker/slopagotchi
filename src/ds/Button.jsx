@@ -1,7 +1,7 @@
 const VARIANTS = {
   primary: { '--bg': 'var(--accent)', '--bgPress': 'var(--accent-press)', '--fg': 'var(--accent-ink)' },
   secondary: { '--bg': 'var(--accent-2)', '--bgPress': 'var(--accent-2-press)', '--fg': '#ffffff' },
-  ink: { '--bg': 'var(--ink)', '--bgPress': '#000000', '--fg': '#ffffff' },
+  ink: { '--bg': 'var(--ink)', '--bgPress': 'var(--ink)', '--fg': '#ffffff' },
   ghost: { '--bg': 'transparent', '--bgPress': 'var(--paper-2)', '--fg': 'var(--ink)' },
 }
 

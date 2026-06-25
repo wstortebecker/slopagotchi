@@ -4,7 +4,7 @@ const TONES = {
   default: { background: 'var(--surface-card)', border: '1px solid var(--line)' },
   sunken: { background: 'var(--surface-sunken)', border: '1px solid var(--line)' },
   accent: { background: 'var(--accent-soft)', border: '1px solid #f6c6dc' },
-  ink: { background: 'var(--ink)', border: '1px solid #000', color: 'var(--paper)' },
+  ink: { background: 'var(--ink)', border: '1px solid var(--ink)', color: 'var(--paper)' },
 }
 
 /**
