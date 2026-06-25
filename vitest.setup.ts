@@ -1,4 +1,26 @@
+import { vi } from "vitest";
+import type { ReactNode } from "react";
 import "@testing-library/jest-dom/vitest";
+
+// Components render TopBar (and others) that use Clerk. Tests mount these in
+// isolation without a <ClerkProvider>, so mock the SDK with test-safe no-ops.
+vi.mock("@clerk/clerk-react", () => {
+  const Passthrough = ({ children }: { children?: ReactNode }) => children ?? null;
+  const Empty = () => null;
+  return {
+    ClerkProvider: Passthrough,
+    SignedIn: Passthrough,
+    SignedOut: Empty,
+    SignIn: Empty,
+    SignUp: Empty,
+    UserButton: Empty,
+    PricingTable: Empty,
+    Protect: Passthrough,
+    useAuth: () => ({ getToken: async () => null, isSignedIn: false, userId: null }),
+    useUser: () => ({ user: null, isLoaded: true, isSignedIn: false }),
+    useClerk: () => ({}),
+  };
+});
 
 // jsdom doesn't always expose a usable `localStorage` global (opaque origin on
 // the default about:blank document). The app reads/writes it directly, so give

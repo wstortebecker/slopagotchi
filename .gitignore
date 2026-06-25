@@ -7,5 +7,7 @@ dist-ssr
 .vite
 .vercel
 .env
+.env.*
+!.env.example
 *.tsbuildinfo
 .gstack/
