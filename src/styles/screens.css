@@ -55,6 +55,54 @@
   align-items: start;
 }
 
+/* Three-column workspace: analysis · pet · vitals, full viewport height. */
+.dash3 {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.dash3 > .col {
+  padding: 40px 32px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.dash3 > .col-left {
+  flex: 0 0 20%;
+  border-right: 1px solid var(--divider);
+  display: flex;
+  flex-direction: column;
+}
+.dash3 > .col-mid {
+  flex: 1;
+  border-right: 1px solid var(--divider);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+.dash3 > .col-right {
+  flex: 0 0 22%;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+@media (max-width: 1040px) {
+  .dash3 {
+    flex-direction: column;
+  }
+  .dash3 > .col {
+    flex: none;
+    border-right: none;
+    border-bottom: 1px solid var(--divider);
+    overflow: visible;
+  }
+  .dash3 > .col-right {
+    min-width: 0;
+  }
+}
+
 @media (max-width: 1040px) {
   .zoo-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -124,4 +172,34 @@
     border-right: none !important;
     border-bottom: 1px solid var(--line);
   }
+}
+
+/* ---- Scoreboard table ---- */
+.scoreboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.scoreboard-table thead th {
+  text-align: left;
+  font-weight: 800;
+  font-size: 12px;
+  color: var(--ink-3);
+  letter-spacing: 0.01em;
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  user-select: none;
+}
+.scoreboard-table tbody td {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.scoreboard-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.scoreboard-table tbody tr:hover {
+  background: var(--paper-2);
 }

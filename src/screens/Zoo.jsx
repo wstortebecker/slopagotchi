@@ -187,10 +187,10 @@ export default function Zoo() {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <TopBar active="zoo" />
+      <TopBar active="zoo" className="reveal-fade" />
       <main className="container" style={{ padding: '36px 24px 72px', flex: 1 }}>
         {/* header */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 28 }}>
+        <div className="reveal" style={{ ['--reveal-i']: 1, display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 28 }}>
           <div>
             <h1 className="pixel-display" style={{ fontSize: 'clamp(20px, 3vw, 28px)', margin: 0 }}>
               {live ? `${team} zoo` : 'the team zoo'}
@@ -214,22 +214,25 @@ export default function Zoo() {
         </div>
 
         {/* add a teammate / create a zoo */}
-        <ManageZoo team={team} onReload={remote.reload} />
+        <div className="reveal" style={{ ['--reveal-i']: 2 }}>
+          <ManageZoo team={team} onReload={remote.reload} />
+        </div>
 
         {/* grid */}
         <div className="zoo-grid">
           {rows.map((person, i) => (
-            <ZooCard
-              key={person.id}
-              person={person}
-              rank={i + 1}
-              onOpen={() => {
-                // Your own pet → go play it. A real teammate → inspect why they
-                // scored what they did. (Demo roster pets have no handle.)
-                if (person.you) navigate('/play')
-                else if (person.handle) setInspect(person.handle)
-              }}
-            />
+            <div key={person.id} className="reveal-card" style={{ ['--reveal-i']: i + 3, display: 'grid' }}>
+              <ZooCard
+                person={person}
+                rank={i + 1}
+                onOpen={() => {
+                  // Your own pet → go play it. A real teammate → inspect why they
+                  // scored what they did. (Demo roster pets have no handle.)
+                  if (person.you) navigate('/play')
+                  else if (person.handle) setInspect(person.handle)
+                }}
+              />
+            </div>
           ))}
         </div>
       </main>
