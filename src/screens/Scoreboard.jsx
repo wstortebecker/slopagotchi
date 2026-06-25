@@ -196,13 +196,21 @@ const ghostBtn = {
 
 const selectStyle = {
   height: 40,
-  padding: '0 14px',
-  fontSize: 14,
-  fontWeight: 700,
+  padding: '0 34px 0 14px',
+  fontFamily: 'var(--font-pixel)',
+  fontSize: 10,
+  letterSpacing: '0.02em',
   color: 'var(--ink)',
-  background: 'var(--surface-card)',
-  border: '2px solid var(--line)',
-  borderRadius: 'var(--radius-pill)',
+  background:
+    'var(--surface-card) url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'8\' viewBox=\'0 0 8 8\'%3E%3Cpath d=\'M0 1h2v2h2V1h2V0H0zM2 3h4v2H2zM3 5h2v2H3z\' fill=\'%23242521\'/%3E%3C/svg%3E") no-repeat right 14px center',
+  // pixel look: chunky bevel border, hard-edged shadow, rounded corners
+  border: '3px solid var(--ink)',
+  borderRadius: 'var(--radius-sm)',
+  boxShadow: '0 3px 0 var(--ink)',
+  imageRendering: 'pixelated',
+  appearance: 'none',
+  WebkitAppearance: 'none',
+  MozAppearance: 'none',
   cursor: 'pointer',
 }
 

@@ -11,7 +11,7 @@ const TABS = [
 
 export default function TopBar({ active = 'mine', className = '' }) {
   const navigate = useNavigate()
-  const { pet, level } = usePet()
+  const { pet } = usePet()
   const streak = pet?.streakDays ?? 0
   const clean = streak > 0
 
@@ -74,36 +74,6 @@ export default function TopBar({ active = 'mine', className = '' }) {
         >
           <PixelIcon name={clean ? 'sprout' : 'slop'} scale={2.5} color={clean ? 'var(--health-thriving)' : 'var(--slop)'} />
           {streak}-day slop-free streak
-        </div>
-        <div
-          title={`Level ${level}`}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 7,
-            fontWeight: 900,
-            fontSize: 12,
-            color: 'var(--ink-2)',
-            padding: '6px 10px 6px 8px',
-            borderRadius: 'var(--radius-pill)',
-            border: '2px solid var(--line)',
-          }}
-        >
-          <span
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: '50%',
-              background: 'var(--lcd-screen)',
-              boxShadow: 'var(--shadow-screen)',
-              display: 'grid',
-              placeItems: 'center',
-              border: '2px solid var(--lcd-bezel)',
-            }}
-          >
-            <PixelIcon name="heart" scale={2} />
-          </span>
-          LV {level}
         </div>
       </div>
     </header>
