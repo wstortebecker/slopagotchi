@@ -74,6 +74,11 @@ export function getZoo(team) {
   return request(`/zoo/${encodeURIComponent(team)}`)
 }
 
+/** Fetch every developer on the AT record (pet-state records) for the scoreboard. */
+export function getScoreboard() {
+  return request('/scoreboard')
+}
+
 /** Fetch one developer's pet + slop receipt (PR history, reasons, medicine). */
 export function getPet(handle) {
   return request(`/pet/${encodeURIComponent(handle)}`)

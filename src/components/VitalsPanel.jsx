@@ -1,13 +1,13 @@
 import { Card, PixelIcon, StatMeter, StatusBadge } from '../ds/index.js'
 import { usePet } from '../game/store.jsx'
-import { formatAge, relTime } from '../game/engine.js'
+import { relTime } from '../game/engine.js'
 
 /**
  * VitalsPanel — name + status, the three vital meters, today's slop tally, and
  * the rolling list of slop incidents.
  */
 export default function VitalsPanel() {
-  const { pet, status, meters, level } = usePet()
+  const { pet, status, meters } = usePet()
   const now = Date.now()
   const slopToday = pet.slopToday
   const heavy = slopToday > 50
@@ -15,18 +15,13 @@ export default function VitalsPanel() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 480 }}>
       {/* identity */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div>
-          <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 15, color: 'var(--ink)' }}>{pet.name}</div>
-          <div style={{ fontSize: 13, color: 'var(--ink-3)', fontWeight: 700, marginTop: 6 }}>
-            {formatAge(pet.bornAt, now)} · level {level}
-          </div>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ fontFamily: 'var(--font-pixel)', fontSize: 15, color: 'var(--ink)' }}>{pet.name}</div>
         <StatusBadge status={status} />
       </div>
 
       {/* vitals */}
-      <Card padding={18}>
+      <Card padding={18} radius={2} style={{ boxShadow: 'none' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <StatMeter label="Health" value={meters.health} max={4} />
           <StatMeter label="Hunger" value={meters.hunger} max={4} />
@@ -35,29 +30,26 @@ export default function VitalsPanel() {
       </Card>
 
       {/* slop today */}
-      <Card padding={18} tone={heavy ? 'accent' : 'default'}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div className="section-label">Slop shipped today</div>
-            <div
-              style={{
-                fontFamily: 'var(--font-pixel)',
-                fontSize: 26,
-                color: heavy ? 'var(--accent-press)' : 'var(--ink)',
-                marginTop: 10,
-              }}
-            >
-              {slopToday} <span style={{ fontSize: 11 }}>lines</span>
-            </div>
-          </div>
-          <div style={{ background: 'var(--lcd-screen)', padding: 12, borderRadius: 12, boxShadow: 'var(--shadow-screen)' }}>
-            <PixelIcon name={heavy ? 'slop' : 'check'} scale={4} color={heavy ? 'var(--slop)' : 'var(--health-ok)'} />
-          </div>
+      <Card padding={18} tone={heavy ? 'accent' : 'default'} radius={2} style={{ boxShadow: 'none' }}>
+        <div className="section-label">Slop shipped today</div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'var(--font-pixel)',
+            fontSize: 26,
+            color: heavy ? 'var(--accent-press)' : 'var(--ink)',
+            marginTop: 10,
+            minHeight: 26,
+          }}
+        >
+          {slopToday} <span style={{ fontSize: 11 }}>lines</span>
         </div>
       </Card>
 
       {/* incidents */}
-      <Card padding={0}>
+      <Card padding={0} radius={2} style={{ boxShadow: 'none' }}>
         <div className="section-label" style={{ padding: '14px 18px 8px' }}>
           Recent slop incidents
         </div>

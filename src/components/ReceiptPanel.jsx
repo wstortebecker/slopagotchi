@@ -58,16 +58,16 @@ export default function ReceiptPanel() {
   const backendPet = state.data?.pet ?? null
 
   return (
-    <Card padding={20} style={{ width: '100%', maxWidth: 480 }}>
+    <Card padding={20} radius={2} style={{ width: '100%', maxWidth: 480, boxShadow: 'none' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
-        <h3 style={{ fontFamily: 'var(--font-pixel)', fontSize: 13, margin: 0, color: 'var(--ink)' }}>slop receipt</h3>
+        <h3 style={{ fontFamily: 'var(--font-pixel)', fontSize: 10, margin: 0, color: 'rgba(0, 0, 0, 0.8)' }}>slop receipt</h3>
         {handle && (
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-3)', wordBreak: 'break-all' }}>{handle}</span>
         )}
       </div>
 
       {state.status === 'unlinked' && (
-        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-3)', margin: 0, lineHeight: 1.5 }}>
+        <p style={{ fontFamily: 'var(--font-lcd)', fontSize: 15, color: 'var(--ink-3)', margin: 0 }}>
           This pet plays locally. Re-hatch and connect a <strong>tangled.org</strong> handle to score your
           real pull requests and get a receipt of every slop incident.
         </p>

@@ -25,15 +25,16 @@ function Eyebrow({ children }) {
   )
 }
 
-function Heading({ children, center = false }) {
+function Heading({ children, center = false, pixel = false }) {
   return (
     <h2
       style={{
         margin: '12px 0 0',
-        fontFamily: 'var(--font-body)',
+        fontFamily: pixel ? 'var(--font-pixel)' : 'var(--font-body)',
         fontWeight: 800,
-        fontSize: 'clamp(22px, 2.4vw, 30px)',
-        letterSpacing: '-0.01em',
+        fontSize: pixel ? 'clamp(16px, 1.8vw, 22px)' : 'clamp(22px, 2.4vw, 30px)',
+        lineHeight: pixel ? 1.35 : 1.1,
+        letterSpacing: pixel ? '0' : '-0.01em',
         color: 'var(--ink)',
         textAlign: center ? 'center' : 'left',
       }}
@@ -72,43 +73,29 @@ function Memorial() {
 }
 
 export default function Personal() {
-  const navigate = useNavigate()
-  const { pet, mood, status, actions } = usePet()
+  const { mood, status } = usePet()
   const dead = mood === 'dead'
   const review = REVIEW[status] || REVIEW.ok
 
-  const reHatch = () => {
-    actions.resetEgg()
-    navigate('/hatch')
-  }
-
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--surface-card)' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--paper)' }}>
       <TopBar active="mine" className="reveal-fade" />
 
       <div className="dash3">
         {/* ── analysis ──────────────────────────────────────────── */}
         <div className="col col-left reveal" style={{ ['--reveal-i']: 1 }}>
           <Eyebrow>Overview</Eyebrow>
-          <Heading>Analysis</Heading>
-          <p style={{ marginTop: 18, fontSize: 14, fontWeight: 600, color: 'var(--ink-2)', lineHeight: 1.65 }}>
+          <Heading pixel>Analysis</Heading>
+          <p style={{ marginTop: 18, fontFamily: 'var(--font-lcd)', fontSize: 15, color: 'var(--ink-3)' }}>
             {review}
           </p>
-          <div style={{ marginTop: 'auto', paddingTop: 24, borderTop: '1px solid var(--divider)' }}>
-            <button
-              onClick={reHatch}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 13, fontWeight: 800, color: 'var(--accent)' }}
-            >
-              start over with a new egg →
-            </button>
-          </div>
         </div>
 
         {/* ── the pet ───────────────────────────────────────────── */}
         <div className="col col-mid reveal" style={{ ['--reveal-i']: 2 }}>
           <div style={{ textAlign: 'center' }}>
             <Eyebrow>Live pet</Eyebrow>
-            <Heading center>{pet.name}</Heading>
+            <Heading center>Health score</Heading>
           </div>
           <PetConsole />
         </div>
