@@ -159,6 +159,23 @@ export function PetProvider({ children }) {
         if (!h || !t) return { ok: false, status: 0, data: {}, error: 'handle and team required' }
         return joinTeam({ handle: h, team: t })
       },
+      // Set (or change) the zoo team without linking your own account — lets a
+      // local player start a team zoo and populate it with other people's pets.
+      setTeam: (team) => {
+        const t = String(team || '').trim().toLowerCase()
+        setPet((prev) => (prev ? { ...prev, team: t } : prev))
+      },
+      // Register someone else's Tangled handle into a team zoo so their scored
+      // pet shows up alongside yours. Doesn't touch your own pet. Returns the
+      // API envelope (the backend backfills + scores their PRs).
+      addTeammate: ({ handle, team }) => {
+        const h = String(handle || '').trim().replace(/^@/, '')
+        const t = String(team || '').trim().toLowerCase()
+        if (!h || !t) {
+          return Promise.resolve({ ok: false, status: 0, data: {}, error: 'handle and team required' })
+        }
+        return joinTeam({ handle: h, team: t })
+      },
       resetEgg: () => {
         setPet(null)
         setMessage('')

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card } from '../ds/index.js'
+import { Button, Card } from '../ds/index.js'
 import TopBar from '../components/TopBar.jsx'
 import ZooCard from '../components/ZooCard.jsx'
 import { usePet } from '../game/store.jsx'
@@ -20,37 +20,136 @@ function SummaryStat({ value, label, color }) {
 const norm = (h) => String(h || '').toLowerCase().replace(/^@/, '')
 
 /**
- * Fetches the player's real team zoo from the backend (when they've connected a
- * Tangled handle to a team). Returns the live members or null while loading /
- * when there's nothing real to show, so the screen can fall back to the demo
- * roster. Re-fetches on focus so a backfill that finishes elsewhere appears.
+ * Fetches the player's real team zoo from the backend. Exposes `reload()` so the
+ * screen can refresh after adding a teammate (and poll while their backfill
+ * runs). Returns null-ish state while loading / when there's nothing real yet,
+ * so the screen can fall back to the demo roster.
  */
 function useRemoteZoo(team) {
   const [state, setState] = useState({ loading: !!team, configured: false, members: [] })
-
+  const mounted = useRef(true)
   useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+
+  const reload = useCallback(async () => {
     if (!team) {
       setState({ loading: false, configured: false, members: [] })
-      return undefined
+      return
     }
-    let alive = true
-    const load = async () => {
-      const res = await getZoo(team)
-      if (!alive) return
-      const configured = res.ok && res.data?.configured === true
-      const members = Array.isArray(res.data?.members) ? res.data.members : []
-      setState({ loading: false, configured, members })
-    }
-    load()
-    const onFocus = () => load()
-    window.addEventListener('focus', onFocus)
-    return () => {
-      alive = false
-      window.removeEventListener('focus', onFocus)
-    }
+    const res = await getZoo(team)
+    if (!mounted.current) return
+    const configured = res.ok && res.data?.configured === true
+    const members = Array.isArray(res.data?.members) ? res.data.members : []
+    setState({ loading: false, configured, members })
   }, [team])
 
-  return state
+  useEffect(() => {
+    reload()
+    const onFocus = () => reload()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [reload])
+
+  return { ...state, reload }
+}
+
+/** Add-a-teammate (or create-a-zoo) controls shown above the grid. */
+function ManageZoo({ team, onReload }) {
+  const { actions } = usePet()
+  const [teamInput, setTeamInput] = useState('')
+  const [handleInput, setHandleInput] = useState('')
+  const [adding, setAdding] = useState(false)
+  const [msg, setMsg] = useState(null)
+  const timers = useRef([])
+
+  useEffect(() => () => timers.current.forEach(clearTimeout), [])
+
+  const createZoo = (e) => {
+    e.preventDefault()
+    const t = norm(teamInput)
+    if (t) actions.setTeam(t)
+  }
+
+  const addTeammate = async (e) => {
+    e.preventDefault()
+    const h = norm(handleInput)
+    if (!h || !team || adding) return
+    setAdding(true)
+    setMsg(null)
+    const res = await actions.addTeammate({ handle: h, team })
+    setAdding(false)
+    if (res.ok) {
+      setMsg({ ok: true, text: `Added ${h}. Scoring their pull requests — refresh in a moment.` })
+      setHandleInput('')
+      onReload()
+      // Their backfill runs server-side; re-poll so the pet appears as it lands.
+      timers.current.forEach(clearTimeout)
+      timers.current = [4000, 9000, 15000].map((ms) => setTimeout(onReload, ms))
+    } else {
+      setMsg({ ok: false, text: res.error || `Couldn't add ${h}. Check the handle.` })
+    }
+  }
+
+  if (!team) {
+    return (
+      <Card padding={16} style={{ marginBottom: 20 }}>
+        <form onSubmit={createZoo} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ flex: 1, minWidth: 220 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-3)', marginBottom: 6 }}>start a team zoo</div>
+            <input
+              value={teamInput}
+              onChange={(e) => setTeamInput(e.target.value)}
+              placeholder="acme"
+              autoComplete="off"
+              spellCheck={false}
+              style={zooInputStyle}
+            />
+          </div>
+          <Button pixel={false} size="md" type="submit" disabled={!teamInput.trim()}>
+            Create zoo
+          </Button>
+        </form>
+        <p style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: 'var(--ink-3)' }}>
+          Pick a team slug, then add teammates by their Tangled handle.
+        </p>
+      </Card>
+    )
+  }
+
+  return (
+    <Card padding={16} style={{ marginBottom: 20 }}>
+      <form onSubmit={addTeammate} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-3)', marginBottom: 6 }}>
+            add a teammate to <span style={{ color: 'var(--accent-press)' }}>{team}</span>
+          </div>
+          <input
+            value={handleInput}
+            onChange={(e) => setHandleInput(e.target.value)}
+            placeholder="filipstal.tngl.sh"
+            autoComplete="off"
+            spellCheck={false}
+            style={zooInputStyle}
+          />
+        </div>
+        <Button pixel={false} size="md" type="submit" disabled={adding || !handleInput.trim()}>
+          {adding ? 'Adding…' : 'Add to zoo'}
+        </Button>
+      </form>
+      {msg && (
+        <p
+          role={msg.ok ? 'status' : 'alert'}
+          style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: msg.ok ? 'var(--health-thriving)' : 'var(--slop)' }}
+        >
+          {msg.text}
+        </p>
+      )}
+    </Card>
+  )
 }
 
 export default function Zoo() {
@@ -100,7 +199,7 @@ export default function Zoo() {
             {team && !live && !remote.loading && (
               <p style={{ color: 'var(--ink-3)', fontWeight: 700, fontSize: 13, marginTop: 10 }}>
                 {remote.configured
-                  ? 'No scored pull requests for this team yet — showing the demo zoo while your backfill runs.'
+                  ? 'No teammates scored for this zoo yet — add some below. (Demo pets shown meanwhile.)'
                   : 'Backend not connected yet — showing the demo zoo. Once env is configured, real pets appear here.'}
               </p>
             )}
@@ -111,6 +210,9 @@ export default function Zoo() {
             <SummaryStat value={gone} label="expired" color="var(--health-dead)" />
           </Card>
         </div>
+
+        {/* add a teammate / create a zoo */}
+        <ManageZoo team={team} onReload={remote.reload} />
 
         {/* grid */}
         <div className="zoo-grid">
@@ -128,4 +230,18 @@ export default function Zoo() {
       </main>
     </div>
   )
+}
+
+const zooInputStyle = {
+  width: '100%',
+  height: 44,
+  padding: '0 14px',
+  fontSize: 15,
+  fontWeight: 700,
+  color: 'var(--ink)',
+  background: 'var(--surface-card)',
+  border: '2px solid var(--line)',
+  borderRadius: 'var(--radius-md)',
+  outline: 'none',
+  boxSizing: 'border-box',
 }

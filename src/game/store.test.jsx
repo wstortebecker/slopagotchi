@@ -48,6 +48,45 @@ describe('PetProvider connect action', () => {
     expect(res.ok).toBe(false)
   })
 
+  it('setTeam sets the zoo team without touching handle/source', async () => {
+    const { result } = renderHook(() => usePet(), { wrapper: PetProvider })
+    act(() => {
+      result.current.actions.hatch({ name: 'Mo', species: 'blip', shell: 'sky' })
+    })
+    act(() => {
+      result.current.actions.setTeam('Acme')
+    })
+    await waitFor(() => expect(result.current.pet.team).toBe('acme'))
+    expect(result.current.pet.handle).toBe('')
+    expect(joinTeam).not.toHaveBeenCalled()
+  })
+
+  it('addTeammate registers another handle into the team (normalised)', async () => {
+    const { result } = renderHook(() => usePet(), { wrapper: PetProvider })
+    act(() => {
+      result.current.actions.hatch({ name: 'Mo', species: 'blip', shell: 'sky' })
+    })
+    let res
+    await act(async () => {
+      res = await result.current.actions.addTeammate({ handle: '@Dana.tngl.sh', team: 'Acme' })
+    })
+    expect(joinTeam).toHaveBeenCalledWith({ handle: 'Dana.tngl.sh', team: 'acme' })
+    expect(res.ok).toBe(true)
+  })
+
+  it('addTeammate refuses a missing handle or team', async () => {
+    const { result } = renderHook(() => usePet(), { wrapper: PetProvider })
+    act(() => {
+      result.current.actions.hatch({ name: 'Mo', species: 'blip', shell: 'sky' })
+    })
+    let res
+    await act(async () => {
+      res = await result.current.actions.addTeammate({ handle: 'dana', team: '' })
+    })
+    expect(joinTeam).not.toHaveBeenCalled()
+    expect(res.ok).toBe(false)
+  })
+
   it('persists the connected account across reloads (localStorage)', async () => {
     const first = renderHook(() => usePet(), { wrapper: PetProvider })
     act(() => {

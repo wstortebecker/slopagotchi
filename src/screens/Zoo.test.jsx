@@ -1,15 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 vi.mock('../api/client.js', () => ({
   getZoo: vi.fn(),
+  joinTeam: vi.fn(),
 }))
 
 import Zoo from './Zoo.jsx'
 import { PetProvider } from '../game/store.jsx'
 import * as engine from '../game/engine.js'
-import { getZoo } from '../api/client.js'
+import { getZoo, joinTeam } from '../api/client.js'
 
 function seedPet(over = {}) {
   const pet = { ...engine.createPet({ name: 'Mo', species: 'blip', shell: 'sky' }), ...over }
@@ -63,6 +64,45 @@ describe('Zoo screen', () => {
     // ...and the demo roster does not.
     expect(screen.queryByText(/Jess Moreau/)).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /acme zoo/i })).toBeInTheDocument()
+  })
+
+  it('adds a teammate to the team and refreshes the zoo', async () => {
+    seedPet({ handle: 'me.tngl.sh', team: 'acme', source: 'tangled' })
+    getZoo.mockResolvedValue({
+      ok: true,
+      status: 200,
+      data: {
+        team: 'acme',
+        configured: true,
+        members: [{ handle: 'me.tngl.sh', pet: { health: 90, band: 'sharp', state: 'active' } }],
+      },
+    })
+    joinTeam.mockResolvedValue({ ok: true, status: 200, data: { ok: true, state: 'backfilling' } })
+
+    renderZoo()
+    await waitFor(() => expect(getZoo).toHaveBeenCalled())
+    const callsBefore = getZoo.mock.calls.length
+
+    const input = await screen.findByPlaceholderText('filipstal.tngl.sh')
+    fireEvent.change(input, { target: { value: '@Dana.tngl.sh' } })
+    fireEvent.click(screen.getByRole('button', { name: /add to zoo/i }))
+
+    await waitFor(() => expect(joinTeam).toHaveBeenCalledWith({ handle: 'dana.tngl.sh', team: 'acme' }))
+    await waitFor(() => expect(getZoo.mock.calls.length).toBeGreaterThan(callsBefore))
+    expect(await screen.findByText(/scoring their pull requests/i)).toBeInTheDocument()
+  })
+
+  it('offers a create-zoo form when the player has no team, then reveals add', async () => {
+    seedPet({ handle: '', team: '' })
+    getZoo.mockResolvedValue({ ok: true, status: 200, data: { team: 'beta', configured: true, members: [] } })
+
+    renderZoo()
+    expect(screen.getByText(/start a team zoo/i)).toBeInTheDocument()
+
+    fireEvent.change(screen.getByPlaceholderText('acme'), { target: { value: 'Beta' } })
+    fireEvent.click(screen.getByRole('button', { name: /create zoo/i }))
+
+    expect(await screen.findByPlaceholderText('filipstal.tngl.sh')).toBeInTheDocument()
   })
 
   it('keeps the demo roster when the backend is unconfigured', async () => {
