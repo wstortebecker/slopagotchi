@@ -67,7 +67,9 @@ export default function Onboarding() {
   const navigate = useNavigate()
   const { actions } = usePet()
   const [step, setStep] = useState(0)
-  const [source, setSource] = useState('github')
+  const [source, setSource] = useState('tangled')
+  const [handle, setHandle] = useState('')
+  const [team, setTeam] = useState('')
   const [species, setSpecies] = useState('blip')
   const [shell, setShell] = useState(() => getStoredShell())
   const [name, setName] = useState('')
@@ -86,8 +88,22 @@ export default function Onboarding() {
   const next = () => setStep((s) => Math.min(STEPS.length - 1, s + 1))
   const back = () => setStep((s) => Math.max(0, s - 1))
 
+  const cleanHandle = handle.trim().replace(/^@/, '')
+  const cleanTeam = team.trim().toLowerCase()
+  const willConnect = source === 'tangled' && cleanHandle && cleanTeam
+
   const hatch = () => {
-    actions.hatch({ name: name.trim() || 'Mossy', species, shell })
+    actions.hatch({
+      name: name.trim() || 'Mossy',
+      species,
+      shell,
+      handle: willConnect ? cleanHandle : '',
+      team: willConnect ? cleanTeam : '',
+      source,
+    })
+    // Fire-and-forget: register with the backend zoo. The local pet hatches
+    // regardless, so a missing/unconfigured backend never blocks onboarding.
+    if (willConnect) actions.connect({ handle: cleanHandle, team: cleanTeam, source })
     navigate('/play')
   }
 
@@ -173,6 +189,43 @@ export default function Onboarding() {
                         )
                       })}
                     </div>
+
+                    {source === 'tangled' ? (
+                      <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-3)' }}>your tangled handle</span>
+                          <input
+                            value={handle}
+                            onChange={(e) => setHandle(e.target.value)}
+                            placeholder="alice.tngl.sh"
+                            autoComplete="off"
+                            spellCheck={false}
+                            style={connectInputStyle}
+                          />
+                        </label>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ink-3)' }}>team zoo</span>
+                          <input
+                            value={team}
+                            onChange={(e) => setTeam(e.target.value)}
+                            placeholder="acme"
+                            autoComplete="off"
+                            spellCheck={false}
+                            style={connectInputStyle}
+                          />
+                        </label>
+                        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-3)', margin: 0 }}>
+                          {willConnect
+                            ? "we'll score your real pull requests and drop your pet into the team zoo."
+                            : 'leave these blank to just play with a local pet — no scoring, no judgment. (well, less judgment.)'}
+                        </p>
+                      </div>
+                    ) : (
+                      <p style={{ marginTop: 16, fontSize: 13, fontWeight: 600, color: 'var(--ink-3)' }}>
+                        GitHub scoring is on the way. For now your pet plays locally — pick{' '}
+                        <strong>tangled.org</strong> to connect a real account and join a team zoo.
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -313,4 +366,18 @@ export default function Onboarding() {
       </div>
     </div>
   )
+}
+
+const connectInputStyle = {
+  width: '100%',
+  height: 44,
+  padding: '0 14px',
+  fontSize: 15,
+  fontWeight: 700,
+  color: 'var(--ink)',
+  background: 'var(--surface-card)',
+  border: '2px solid var(--line)',
+  borderRadius: 'var(--radius-md)',
+  outline: 'none',
+  boxSizing: 'border-box',
 }

@@ -3,6 +3,7 @@ import { Button, Card, PixelIcon } from '../ds/index.js'
 import TopBar from '../components/TopBar.jsx'
 import PetConsole from '../components/PetConsole.jsx'
 import VitalsPanel from '../components/VitalsPanel.jsx'
+import ReceiptPanel from '../components/ReceiptPanel.jsx'
 import { usePet } from '../game/store.jsx'
 
 function Memorial() {
@@ -57,6 +58,7 @@ export default function Personal() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center', width: '100%' }}>
             {dead && <Memorial />}
             <VitalsPanel />
+            <ReceiptPanel />
             <div style={{ width: '100%', maxWidth: 480, display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 onClick={reHatch}
