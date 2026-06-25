@@ -100,7 +100,8 @@ export default function Scoreboard() {
   // 'loading' → fetching; 'ready' → backend answered; 'offline' → unreachable.
   const [feed, setFeed] = useState({ status: 'loading', configured: false, developers: [] })
   const [query, setQuery] = useState('')
-  const [sort, setSort] = useState({ key: 'health', dir: 'desc' })
+  // Default to the backend's own order (PR-weighted ranking); column clicks override.
+  const [sort, setSort] = useState({ key: 'rank', dir: 'asc' })
 
   useEffect(() => {
     let alive = true
@@ -117,7 +118,11 @@ export default function Scoreboard() {
     }
   }, [])
 
-  const allRows = useMemo(() => feed.developers.map(rowFromDeveloper), [feed.developers])
+  // `rank` preserves the backend's PR-weighted order so it's the stable default sort.
+  const allRows = useMemo(
+    () => feed.developers.map((d, i) => ({ ...rowFromDeveloper(d), rank: i })),
+    [feed.developers],
+  )
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -161,7 +166,7 @@ export default function Scoreboard() {
                 Scoreboard <span style={{ color: 'var(--ink-3)' }}>[{rows.length}]</span>
               </h1>
               <p style={{ color: 'var(--ink-2)', fontWeight: 600, fontSize: 14, marginTop: 8 }}>
-                Every developer on the Slopagotchi record, ranked by the health of their pet.
+                Every developer on the Slopagotchi record, ranked by pet health and weighted by how many PRs they&apos;ve shipped.
               </p>
             </div>
             <button onClick={() => downloadCsv(rows)} disabled={rows.length === 0} style={{ ...ghostBtn, opacity: rows.length === 0 ? 0.5 : 1, cursor: rows.length === 0 ? 'default' : 'pointer' }}>
