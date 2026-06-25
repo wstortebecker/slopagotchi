@@ -27,6 +27,7 @@ function diag(over: Partial<DiagnosticRecord> = {}): DiagnosticRecord {
     prUri: "at://did:plc:dev/sh.tangled.repo.pull/abc",
     round: 0,
     prTitle: "Add feature",
+    source: "tangled",
     score: 30,
     scoreIsSample: true,
     verdict: "minor",

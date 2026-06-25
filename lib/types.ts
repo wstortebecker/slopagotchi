@@ -76,6 +76,86 @@ export interface DecodedRound extends PullRoundRef {
   patchText: string;
 }
 
+// --- Source-tagged scoreable refs (U1/U5) ----------------------------------
+
+/**
+ * A unit of scoreable work, tagged by its source. The score core (U5) consumes
+ * this discriminated union uniformly: it reduces any ref to a `(prUri, round)`
+ * identity via {@link refClaimIdentity} and reuses the unchanged claim / dedup /
+ * rkey machinery (KTD1). Only enumeration and diff-fetch differ per source.
+ */
+export interface TangledRoundRef {
+  source: "tangled";
+  /** AT-URI of the pull record (`at://did/sh.tangled.repo.pull/rkey`). */
+  prUri: string;
+  /** Zero-based round index within the pull's `rounds[]`. */
+  round: number;
+  /** CID of the round's gzipped patch blob. */
+  cid: string;
+  title?: string;
+  createdAt: string;
+}
+
+export interface GitHubPrRef {
+  source: "github";
+  owner: string;
+  repo: string;
+  prNumber: number;
+  /** Head SHA at enumeration time; a new push mints a distinct claim (R6). */
+  headSha: string;
+  /** Canonical github.com PR URL (`html_url`). */
+  prUrl: string;
+  title?: string;
+  createdAt: string;
+}
+
+export type ScoreableRef = TangledRoundRef | GitHubPrRef;
+
+/**
+ * Mints the synthetic `prUri` for a GitHub PR (KTD1):
+ * `github:${owner}/${repo}#${prNumber}@${headSha}`. The `github:` prefix
+ * guarantees no collision with `at://` keys and is **not** an AT-URI — never
+ * route it through {@link subjectDidFromPrUri}.
+ */
+export function githubPrUri(ref: {
+  owner: string;
+  repo: string;
+  prNumber: number;
+  headSha: string;
+}): string {
+  return `github:${ref.owner}/${ref.repo}#${ref.prNumber}@${ref.headSha}`;
+}
+
+/**
+ * The subject id for a STANDALONE (unlinked) GitHub developer: `github:<login>`.
+ * A diagnostic/pet `subject` is either a developer DID (Tangled, or a GitHub
+ * username whose owner has linked + proven it) or one of these — the GitHub
+ * identity standing in for itself, since there is no atproto account to key
+ * against. Records still live in the service repo, so `subject` is just the
+ * stable key. Shape is distinct from {@link githubPrUri} (always `owner/repo#n@sha`)
+ * and from a DID, so the three never collide. Lower-cased to match the
+ * case-insensitive link registry; pass an already-normalized username.
+ */
+export function githubSubject(username: string): string {
+  return `github:${username.toLowerCase()}`;
+}
+
+/** Whether a subject id is a standalone GitHub subject (vs a developer DID). */
+export function isGithubSubject(subject: string): boolean {
+  return subject.startsWith("github:");
+}
+
+/** Reduces any scoreable ref to the `(prUri, round)` identity used for claims, dedup, and rkeys. */
+export function refClaimIdentity(ref: ScoreableRef): {
+  prUri: string;
+  round: number;
+} {
+  if (ref.source === "github") {
+    return { prUri: githubPrUri(ref), round: 0 };
+  }
+  return { prUri: ref.prUri, round: ref.round };
+}
+
 // --- Scorer: slop score (U3) ----------------------------------------------
 
 /**
@@ -154,12 +234,28 @@ export const PET_STATE_COLLECTION = "app.slopgotchi.pet.state";
 /** One scored PR round, published as a public, self-describing record. */
 export const DiagnosticRecordSchema = z.object({
   $type: z.literal(DIAGNOSTIC_COLLECTION),
-  /** The developer DID this diagnostic is about. */
+  /** The subject this diagnostic is about: a developer DID, or a standalone `github:<login>` subject. */
   subject: z.string(),
-  /** AT-URI of the `sh.tangled.repo.pull` record. */
+  /** AT-URI of the `sh.tangled.repo.pull` record, or a synthetic `github:` URI. */
   prUri: z.string(),
   round: z.number().int().min(0),
   prTitle: z.string().optional(),
+  /**
+   * Which source this diagnostic's PR came from. Defaults to "tangled" so every
+   * pre-existing record and every Tangled writer that omits it still parses (KTD2).
+   */
+  source: z.enum(["tangled", "github"]).default("tangled"),
+  /** Canonical web URL for the PR (github.com/...); present for GitHub sources. */
+  prUrl: z.string().optional(),
+  /** GitHub PR coordinates; present for `source: "github"`. */
+  github: z
+    .object({
+      owner: z.string(),
+      repo: z.string(),
+      prNumber: z.number().int(),
+      headSha: z.string(),
+    })
+    .optional(),
   /**
    * Raw 0–100 slop score. NOT independently reproducible — a cached sample of a
    * non-deterministic model run (KTD6). The qualitative `verdict` is the stable
@@ -199,6 +295,13 @@ export type PetStateRecord = z.infer<typeof PetStateRecordSchema>;
 
 /** The DID whose repo owns a pull (the developer being scored). */
 export function subjectDidFromPrUri(prUri: string): string {
+  // Synthetic GitHub prUris carry no DID — the linked DID is passed explicitly on
+  // the write path (KTD1). Fail loudly with a clear message if one reaches here.
+  if (prUri.startsWith("github:")) {
+    throw new Error(
+      `github: prUris are not AT-URIs and carry no subject DID: ${prUri}`,
+    );
+  }
   // at://did:plc:xxx/collection/rkey -> did:plc:xxx
   const m = prUri.match(/^at:\/\/([^/]+)\//);
   if (!m) throw new Error(`Malformed AT-URI: ${prUri}`);

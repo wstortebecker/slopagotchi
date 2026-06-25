@@ -8,6 +8,7 @@ function diag(over: Partial<DiagnosticRecord>): DiagnosticRecord {
     subject: "did:plc:dev",
     prUri: "at://x/c/r1",
     round: 0,
+    source: "tangled",
     score: 50,
     scoreIsSample: true,
     verdict: "sloppy",

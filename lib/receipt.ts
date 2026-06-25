@@ -4,6 +4,10 @@ import type { DiagnosticRecord, SlopCategories } from "./types.js";
 export interface PrSummary {
   prUri: string;
   prTitle?: string;
+  /** Which source the PR came from, so the row can be tagged (R10). */
+  source: "tangled" | "github";
+  /** Canonical web URL (github.com PR link) when available. */
+  prUrl?: string;
   latestScore: number;
   latestVerdict: string;
   /** latest round score − previous round score (same PR); omitted for single-round PRs. */
@@ -48,6 +52,8 @@ export function buildReceipt(diagnostics: DiagnosticRecord[]): ReceiptData {
     prs.push({
       prUri,
       prTitle: latest.prTitle,
+      source: latest.source,
+      prUrl: latest.prUrl,
       latestScore: latest.score,
       latestVerdict: latest.verdict,
       delta: prev ? latest.score - prev.score : undefined,

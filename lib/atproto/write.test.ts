@@ -123,6 +123,33 @@ describe("buildDiagnosticRecord", () => {
     } as unknown as DiagnosticInput;
     expect(() => buildDiagnosticRecord(bad)).toThrow(WriteError);
   });
+
+  it("defaults source to 'tangled' when omitted (KTD2 back-compat)", () => {
+    const rec = buildDiagnosticRecord(baseInput);
+    expect(rec.source).toBe("tangled");
+    expect(rec.prUrl).toBeUndefined();
+    expect(rec.github).toBeUndefined();
+  });
+
+  it("carries source/prUrl/github coordinates for a GitHub diagnostic", () => {
+    const rec = buildDiagnosticRecord({
+      ...baseInput,
+      prUri: "github:o/r#5@abc",
+      source: "github",
+      prUrl: "https://github.com/o/r/pull/5",
+      github: { owner: "o", repo: "r", prNumber: 5, headSha: "abc" },
+    });
+    expect(rec.source).toBe("github");
+    expect(rec.prUrl).toBe("https://github.com/o/r/pull/5");
+    expect(rec.github).toMatchObject({ owner: "o", repo: "r", prNumber: 5 });
+    expect(DiagnosticRecordSchema.safeParse(rec).success).toBe(true);
+  });
+
+  it("a GitHub synthetic prUri yields a stable rkey distinct from any Tangled rkey (AE)", () => {
+    const ghRkey = diagnosticRkey("github:o/r#5@abc", 0);
+    expect(ghRkey).toBe(diagnosticRkey("github:o/r#5@abc", 0)); // stable
+    expect(ghRkey).not.toBe(diagnosticRkey(baseInput.prUri, 0)); // distinct
+  });
 });
 
 describe("buildPetStateRecord", () => {

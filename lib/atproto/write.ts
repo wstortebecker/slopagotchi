@@ -117,6 +117,12 @@ export interface DiagnosticInput {
   prUri: string;
   round: number;
   prTitle?: string;
+  /** Source marker; defaults to "tangled" so existing callers are unaffected (KTD2). */
+  source?: "tangled" | "github";
+  /** Canonical web URL for the PR (github.com/...); present for GitHub sources. */
+  prUrl?: string;
+  /** GitHub PR coordinates; present for GitHub sources. */
+  github?: { owner: string; repo: string; prNumber: number; headSha: string };
   scored: ScoredPatch;
   createdAt?: string;
 }
@@ -130,6 +136,9 @@ export function buildDiagnosticRecord(input: DiagnosticInput): DiagnosticRecord 
     prUri: input.prUri,
     round: input.round,
     prTitle: input.prTitle,
+    source: input.source ?? "tangled",
+    prUrl: input.prUrl,
+    github: input.github,
     score: score.score,
     scoreIsSample: true,
     verdict: score.verdict,
