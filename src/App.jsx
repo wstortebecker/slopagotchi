@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { Protect, SignedIn, SignedOut } from '@clerk/clerk-react'
+import { SignedIn, SignedOut, useAuth, useUser } from '@clerk/clerk-react'
 import { usePet } from './game/store.jsx'
-import { PLAN_SLUG } from './game/billing.js'
 import AuthScreen from './screens/AuthScreen.jsx'
 import Blog from './screens/Blog.jsx'
 import BlogPost from './screens/BlogPost.jsx'
@@ -40,13 +39,53 @@ function RequireAuth({ children }) {
   )
 }
 
-/** Signed-in users without an active plan see the Clerk Billing pricing table. */
+/**
+ * Signed-in users without an active subscription see the paywall. The flag is
+ * set server-side (see /api/confirm) after a verified Stripe payment, so it
+ * persists across devices and can't be flipped from the client.
+ */
 function RequireSubscription({ children }) {
-  return (
-    <Protect plan={PLAN_SLUG} fallback={<Paywall />}>
-      {children}
-    </Protect>
-  )
+  const { user, isLoaded } = useUser()
+  if (!isLoaded) return null
+  if (user?.publicMetadata?.subscribed === true) return children
+  return <Paywall />
+}
+
+/**
+ * Handles the redirect back from Stripe Checkout: ?stripe=success&session_id=…
+ * is verified server-side, the Clerk user is refreshed to pick up the new
+ * subscription flag, then the query is stripped so a refresh doesn't re-run it.
+ */
+function StripeReturn() {
+  const { getToken, isSignedIn } = useAuth()
+  const { user } = useUser()
+  useEffect(() => {
+    if (!isSignedIn) return undefined
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('stripe') !== 'success') return undefined
+    const sessionId = params.get('session_id')
+    if (!sessionId) return undefined
+    let cancelled = false
+    ;(async () => {
+      try {
+        const token = await getToken()
+        await fetch(`/api/confirm?session_id=${encodeURIComponent(sessionId)}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!cancelled) await user?.reload()
+      } catch {
+        /* leave them on the paywall; they can retry */
+      }
+      const clean = window.location.pathname + window.location.hash
+      window.history.replaceState({}, '', clean)
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn])
+  return null
 }
 
 /** Auth + subscription gate, applied to everything behind the paywall. */
@@ -62,6 +101,7 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <StripeReturn />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/blog" element={<Blog />} />
