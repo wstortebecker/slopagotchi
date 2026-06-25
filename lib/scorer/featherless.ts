@@ -1,13 +1,13 @@
 import OpenAI from "openai";
-import { prepareDiff } from "./diff";
+import { prepareDiff } from "./diff.js";
 import {
   SYSTEM_PROMPT,
   RULESET_VERSION,
   buildUserPrompt,
   buildRetryPrompt,
-} from "./prompt";
-import { parseScore, ParseError } from "./parse";
-import type { ScoredPatch } from "../types";
+} from "./prompt.js";
+import { parseScore, ParseError } from "./parse.js";
+import type { ScoredPatch } from "../types.js";
 
 /**
  * The Featherless slop scorer. Uses the OpenAI SDK pointed at Featherless with

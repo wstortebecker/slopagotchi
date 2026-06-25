@@ -1,4 +1,4 @@
-import { SLOP_CATEGORIES } from "../types";
+import { SLOP_CATEGORIES } from "../types.js";
 
 /**
  * The rubric system prompt + the inlined JSON schema. Because Featherless does

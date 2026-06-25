@@ -9,7 +9,7 @@ import {
   type PetStateRecord,
   type HealthResult,
   type ScoredPatch,
-} from "../types";
+} from "../types.js";
 
 /**
  * The write layer: the service account publishes `app.slopgotchi.*` records to

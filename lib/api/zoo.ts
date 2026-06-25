@@ -1,7 +1,7 @@
-import { getTeamAccounts, getCachedPetState, isStoreConfigured } from "../store";
-import { fetchPetState } from "../atproto/service";
-import { PetStateRecordSchema, type PetStateRecord } from "../types";
-import type { ApiResponse } from "./http";
+import { getTeamAccounts, getCachedPetState, isStoreConfigured } from "../store.js";
+import { fetchPetState } from "../atproto/service.js";
+import { PetStateRecordSchema, type PetStateRecord } from "../types.js";
+import type { ApiResponse } from "./http.js";
 
 /**
  * The team zoo as JSON (the SPA renders it): one pet-state record per member.

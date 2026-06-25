@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { handlePet } from "../../lib/api/pet";
+import { handlePet } from "../../lib/api/pet.js";
 
 /** GET /api/pet/[handle] — one developer's pet state + slop receipt as JSON. */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

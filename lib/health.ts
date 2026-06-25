@@ -1,4 +1,4 @@
-import { type HealthBand, type HealthResult } from "./types";
+import { type HealthBand, type HealthResult } from "./types.js";
 
 /**
  * The health model: a pure projection of a developer's diagnostics into a

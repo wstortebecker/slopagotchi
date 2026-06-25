@@ -1,4 +1,4 @@
-import type { DiagnosticRecord } from "./types";
+import type { DiagnosticRecord } from "./types.js";
 
 /** One PR's summary for the receipt view. */
 export interface PrSummary {

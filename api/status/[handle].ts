@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { handleStatus } from "../../lib/api/status";
+import { handleStatus } from "../../lib/api/status.js";
 
 /** GET /api/status/[handle] — join/backfill progress for the landing poll. */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

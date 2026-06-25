@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import type { HealthDiagnostic } from "./health";
+import type { HealthDiagnostic } from "./health.js";
 
 /**
  * Thin wrapper over Upstash Redis — the single datastore for Slopgotchi.

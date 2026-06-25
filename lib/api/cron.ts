@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
-import { getConnectedDids, setBackfillStatus } from "../store";
-import { processSubject } from "../pipeline";
-import type { ApiResponse, Schedule } from "./http";
+import { getConnectedDids, setBackfillStatus } from "../store.js";
+import { processSubject } from "../pipeline.js";
+import type { ApiResponse, Schedule } from "./http.js";
 
 /**
  * The cron poll handler: re-scores connected identities (R6, R7).

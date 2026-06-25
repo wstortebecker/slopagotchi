@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { waitUntil } from "@vercel/functions";
-import { handleJoin } from "../lib/api/join";
-import { clientIpFromHeader } from "../lib/api/http";
+import { handleJoin } from "../lib/api/join.js";
+import { clientIpFromHeader } from "../lib/api/http.js";
 
 // Node runtime (uses node:crypto/zlib) is the default; raise the budget so the
 // waitUntil backfill has room. Hobby caps at 60; raise to 300 on Pro.

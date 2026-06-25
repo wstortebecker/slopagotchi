@@ -1,8 +1,8 @@
-import { getDidForHandle, getCachedPetState, normalizeHandle, isStoreConfigured } from "../store";
-import { fetchPetState, fetchDiagnosticsForSubject } from "../atproto/service";
-import { buildReceipt, type ReceiptData } from "../receipt";
-import { PetStateRecordSchema, type PetStateRecord } from "../types";
-import type { ApiResponse } from "./http";
+import { getDidForHandle, getCachedPetState, normalizeHandle, isStoreConfigured } from "../store.js";
+import { fetchPetState, fetchDiagnosticsForSubject } from "../atproto/service.js";
+import { buildReceipt, type ReceiptData } from "../receipt.js";
+import { PetStateRecordSchema, type PetStateRecord } from "../types.js";
+import type { ApiResponse } from "./http.js";
 
 /**
  * One developer's accountability view as JSON: the pet-state record plus the

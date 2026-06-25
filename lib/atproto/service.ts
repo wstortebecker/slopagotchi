@@ -1,6 +1,6 @@
 import { AtpAgent } from "@atproto/api";
-import { resolveIdentity, resolveIdentityByDid } from "./resolve";
-import { sanitizeRkey } from "./write";
+import { resolveIdentity, resolveIdentityByDid } from "./resolve.js";
+import { sanitizeRkey } from "./write.js";
 import {
   DIAGNOSTIC_COLLECTION,
   PET_STATE_COLLECTION,
@@ -8,7 +8,7 @@ import {
   PetStateRecordSchema,
   type DiagnosticRecord,
   type PetStateRecord,
-} from "../types";
+} from "../types.js";
 
 /**
  * Reads the service repo's public records — pet state and diagnostics — for the

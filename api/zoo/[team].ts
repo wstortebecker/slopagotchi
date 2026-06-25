@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { handleZoo } from "../../lib/api/zoo";
+import { handleZoo } from "../../lib/api/zoo.js";
 
 /** GET /api/zoo/[team] — the team's pet-state records as JSON for the SPA. */
 export default async function handler(req: VercelRequest, res: VercelResponse) {

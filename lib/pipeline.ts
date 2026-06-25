@@ -1,17 +1,17 @@
-import { resolvePds } from "./atproto/resolve";
+import { resolvePds } from "./atproto/resolve.js";
 import {
   createReadAgent,
   listPullRounds,
   fetchPatchText,
-} from "./atproto/read";
-import { scorePatch } from "./scorer/featherless";
+} from "./atproto/read.js";
+import { scorePatch } from "./scorer/featherless.js";
 import {
   getServiceAgent,
   writeDiagnostic,
   putPetState,
   buildPetStateRecord,
-} from "./atproto/write";
-import { computeHealth } from "./health";
+} from "./atproto/write.js";
+import { computeHealth } from "./health.js";
 import {
   claimRound,
   releaseRound,
@@ -20,8 +20,8 @@ import {
   getDiagnostics,
   getHandleForDid,
   cachePetState,
-} from "./store";
-import type { PullRoundRef } from "./types";
+} from "./store.js";
+import type { PullRoundRef } from "./types.js";
 
 /**
  * The scoring pipeline: for a developer DID, score unseen (PR, round) pairs and

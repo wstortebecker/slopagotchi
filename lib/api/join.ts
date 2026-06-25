@@ -1,4 +1,4 @@
-import { resolveIdentity, IdentityResolutionError } from "../atproto/resolve";
+import { resolveIdentity, IdentityResolutionError } from "../atproto/resolve.js";
 import {
   registerAccount,
   getDiagnostics,
@@ -7,11 +7,11 @@ import {
   rateLimitHit,
   cachePetState,
   normalizeHandle,
-} from "../store";
-import { getServiceAgent, putPetState, buildPetStateRecord } from "../atproto/write";
-import { computeHealth } from "../health";
-import { processSubject } from "../pipeline";
-import type { ApiResponse, Schedule } from "./http";
+} from "../store.js";
+import { getServiceAgent, putPetState, buildPetStateRecord } from "../atproto/write.js";
+import { computeHealth } from "../health.js";
+import { processSubject } from "../pipeline.js";
+import type { ApiResponse, Schedule } from "./http.js";
 
 /**
  * The join handler: register a developer into a team and kick off a bounded

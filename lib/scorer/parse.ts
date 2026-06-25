@@ -1,4 +1,4 @@
-import { SlopScoreSchema, type SlopScore } from "../types";
+import { SlopScoreSchema, type SlopScore } from "../types.js";
 
 /**
  * Turn raw model text into a validated {@link SlopScore}.

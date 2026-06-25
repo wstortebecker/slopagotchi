@@ -6,8 +6,8 @@ import {
   type BlobRef,
   type DecodedRound,
   type PullRoundRef,
-} from "../types";
-import { resolvePds } from "./resolve";
+} from "../types.js";
+import { resolvePds } from "./resolve.js";
 
 /**
  * The read layer: enumerate a developer's `sh.tangled.repo.pull` records and

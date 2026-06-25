@@ -4,8 +4,8 @@ import {
   getBackfillStatus,
   getDiagnostics,
   normalizeHandle,
-} from "../store";
-import type { ApiResponse } from "./http";
+} from "../store.js";
+import type { ApiResponse } from "./http.js";
 
 /**
  * Join/backfill progress for the landing poll: Joining → Backfilling → Done.

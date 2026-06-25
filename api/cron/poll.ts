@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { waitUntil } from "@vercel/functions";
-import { handleCronPoll } from "../../lib/api/cron";
+import { handleCronPoll } from "../../lib/api/cron.js";
 
 // Hobby caps at 60; raise to 300 on Pro for deeper per-poll scoring.
 export const maxDuration = 60;
