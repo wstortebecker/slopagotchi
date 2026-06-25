@@ -4,16 +4,39 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("../store", () => ({
   getConnectedDids: vi.fn(),
   setBackfillStatus: vi.fn(async () => {}),
+  getAccount: vi.fn(async () => null),
+  getStandaloneGithubUsers: vi.fn(async () => []),
 }));
 vi.mock("../pipeline", () => ({
   processSubject: vi.fn(async () => ({ processed: 0 })),
+  processGitHubSubject: vi.fn(async () => ({ processed: 0 })),
+  processStandaloneGitHub: vi.fn(async () => ({ processed: 0 })),
 }));
+vi.mock("../github/client", () => ({ isGithubConfigured: vi.fn(() => false) }));
 
 import { handleCronPoll } from "./cron";
-import { getConnectedDids } from "../store";
-import { processSubject } from "../pipeline";
+import {
+  getConnectedDids,
+  getAccount,
+  getStandaloneGithubUsers,
+} from "../store";
+import {
+  processSubject,
+  processGitHubSubject,
+  processStandaloneGitHub,
+} from "../pipeline";
+import { isGithubConfigured } from "../github/client";
 
 const SECRET = "test-cron-secret";
+
+const result = (over: Record<string, unknown> = {}) => ({
+  did: "x",
+  processed: 0,
+  skipped: 0,
+  failed: 0,
+  petUpdated: false,
+  ...over,
+});
 
 let scheduled: Array<() => Promise<void>>;
 const schedule = (fn: () => Promise<void>) => {
@@ -25,13 +48,12 @@ beforeEach(() => {
   scheduled = [];
   process.env.CRON_SECRET = SECRET;
   vi.mocked(getConnectedDids).mockResolvedValue([]);
-  vi.mocked(processSubject).mockResolvedValue({
-    did: "x",
-    processed: 0,
-    skipped: 0,
-    failed: 0,
-    petUpdated: false,
-  });
+  vi.mocked(getAccount).mockResolvedValue(null);
+  vi.mocked(getStandaloneGithubUsers).mockResolvedValue([]);
+  vi.mocked(isGithubConfigured).mockReturnValue(false);
+  vi.mocked(processSubject).mockResolvedValue(result());
+  vi.mocked(processGitHubSubject).mockResolvedValue(result());
+  vi.mocked(processStandaloneGitHub).mockResolvedValue(result());
 });
 
 describe("handleCronPoll", () => {
@@ -102,5 +124,42 @@ describe("handleCronPoll", () => {
     } finally {
       delete process.env.CRON_MAX_DIDS;
     }
+  });
+
+  it("does not touch GitHub when it is not configured", async () => {
+    vi.mocked(getConnectedDids).mockResolvedValue(["did:plc:a"]);
+    await handleCronPoll({ authHeader: `Bearer ${SECRET}`, schedule });
+    expect(getAccount).not.toHaveBeenCalled();
+    expect(processGitHubSubject).not.toHaveBeenCalled();
+    expect(getStandaloneGithubUsers).not.toHaveBeenCalled();
+  });
+
+  it("scores a linked DID's GitHub PRs on its own budget when configured", async () => {
+    vi.mocked(isGithubConfigured).mockReturnValue(true);
+    vi.mocked(getConnectedDids).mockResolvedValue(["did:plc:a"]);
+    vi.mocked(getAccount).mockResolvedValue({
+      did: "did:plc:a",
+      handle: "alice.tngl.sh",
+      team: "acme",
+      github: "octocat",
+    });
+    vi.mocked(processGitHubSubject).mockResolvedValue(result({ processed: 2 }));
+    const res = await handleCronPoll({ authHeader: `Bearer ${SECRET}`, schedule });
+    expect(processGitHubSubject).toHaveBeenCalledWith(
+      "did:plc:a",
+      "octocat",
+      expect.objectContaining({ maxRounds: expect.any(Number) }),
+    );
+    expect((res.body as { githubScored: number }).githubScored).toBe(2);
+  });
+
+  it("drains standalone GitHub subjects with the leftover GitHub budget", async () => {
+    vi.mocked(isGithubConfigured).mockReturnValue(true);
+    vi.mocked(getConnectedDids).mockResolvedValue([]);
+    vi.mocked(getStandaloneGithubUsers).mockResolvedValue(["octocat", "hubot"]);
+    vi.mocked(processStandaloneGitHub).mockResolvedValue(result({ processed: 1 }));
+    const res = await handleCronPoll({ authHeader: `Bearer ${SECRET}`, schedule });
+    expect(processStandaloneGitHub).toHaveBeenCalled();
+    expect((res.body as { githubScored: number }).githubScored).toBeGreaterThan(0);
   });
 });
