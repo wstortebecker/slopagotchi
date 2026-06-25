@@ -4,6 +4,19 @@
    ones the Pet + device components reference.
    ========================================================================== */
 
+@font-face {
+  font-family: "Cozette";
+  src: url("/fonts/CozetteVector.woff2") format("woff2");
+  font-weight: 400 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Cozette";
+  src: url("/fonts/CozetteVectorBold.woff2") format("woff2");
+  font-weight: 700 900;
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {

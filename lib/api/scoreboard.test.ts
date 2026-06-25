@@ -6,7 +6,7 @@ vi.mock("../atproto/service", () => ({
   listAllPetStates: vi.fn(async () => []),
 }));
 
-import { handleScoreboard, type ScoreboardDTO } from "./scoreboard";
+import { handleScoreboard, rankScore, type ScoreboardDTO } from "./scoreboard";
 import { listAllPetStates } from "../atproto/service";
 
 function petRecord(over: Partial<PetStateRecord> = {}): PetStateRecord {
@@ -40,6 +40,31 @@ describe("handleScoreboard", () => {
     const body = res.body as ScoreboardDTO;
     expect(body.configured).toBe(true);
     expect(body.developers.map((d) => d.health)).toEqual([90, 65, 40]);
+  });
+
+  it("does not let a no-diagnoses (health-100) dev outrank a well-scored one", async () => {
+    vi.mocked(listAllPetStates).mockResolvedValue([
+      // Perfect health, but zero scored PRs — should not top the board.
+      petRecord({ subject: "did:plc:idle", handle: "idle", health: 100, band: null, state: "no-diagnoses", diagnosticCount: 0 }),
+      // Slightly lower health, but proven over many PRs.
+      petRecord({ subject: "did:plc:proven", handle: "proven", health: 80, diagnosticCount: 20 }),
+    ]);
+    const body = (await handleScoreboard()).body as ScoreboardDTO;
+    expect(body.developers.map((d) => d.handle)).toEqual(["proven", "idle"]);
+  });
+
+  it("ranks a high-PR dev above a single-PR dev at equal health", async () => {
+    vi.mocked(listAllPetStates).mockResolvedValue([
+      petRecord({ subject: "did:plc:few", handle: "few", health: 90, diagnosticCount: 1 }),
+      petRecord({ subject: "did:plc:many", handle: "many", health: 90, diagnosticCount: 30 }),
+    ]);
+    const body = (await handleScoreboard()).body as ScoreboardDTO;
+    expect(body.developers.map((d) => d.handle)).toEqual(["many", "few"]);
+  });
+
+  it("rankScore is the baseline at zero PRs and converges to health with many", () => {
+    expect(rankScore({ health: 100, diagnosticCount: 0 })).toBe(50);
+    expect(rankScore({ health: 90, diagnosticCount: 1000 })).toBeCloseTo(89.8, 1);
   });
 
   it("breaks health ties by diagnostic count, then identity", async () => {

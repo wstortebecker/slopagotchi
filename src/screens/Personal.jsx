@@ -4,6 +4,7 @@ import TopBar from '../components/TopBar.jsx'
 import PetConsole from '../components/PetConsole.jsx'
 import VitalsPanel from '../components/VitalsPanel.jsx'
 import ReceiptPanel from '../components/ReceiptPanel.jsx'
+import Typewriter from '../components/Typewriter.jsx'
 import { usePet } from '../game/store.jsx'
 
 /* The left-column read on the pet's current state — a short, plain-language
@@ -84,18 +85,18 @@ export default function Personal() {
       <div className="dash3">
         {/* ── analysis ──────────────────────────────────────────── */}
         <div className="col col-left reveal" style={{ ['--reveal-i']: 1 }}>
-          <Eyebrow>Overview</Eyebrow>
-          <Heading pixel>Analysis</Heading>
+          <Eyebrow><Typewriter text="Overview" delay={150} /></Eyebrow>
+          <Heading pixel><Typewriter text="Analysis" delay={300} /></Heading>
           <p style={{ marginTop: 18, fontFamily: 'var(--font-lcd)', fontSize: 15, color: 'var(--ink-3)' }}>
-            {review}
+            <Typewriter text={review} delay={550} />
           </p>
         </div>
 
         {/* ── the pet ───────────────────────────────────────────── */}
         <div className="col col-mid reveal" style={{ ['--reveal-i']: 2 }}>
           <div style={{ textAlign: 'center' }}>
-            <Eyebrow>Live pet</Eyebrow>
-            <Heading center>Health score</Heading>
+            <Eyebrow><Typewriter text="Live pet" delay={250} /></Eyebrow>
+            <Heading center><Typewriter text="Health score" delay={400} /></Heading>
           </div>
           <PetConsole />
         </div>

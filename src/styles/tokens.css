@@ -56,7 +56,7 @@
   --text-muted: var(--ink-3);
   --text-on-accent: var(--accent-ink);
   --surface-page: var(--paper);
-  --surface-card: #ffffff;
+  --surface-card: #f3f0ea;
   --surface-sunken: var(--paper-2);
   --surface-screen: var(--lcd-screen);
   --border-hairline: var(--line);
@@ -71,7 +71,7 @@
   /* ---- Typography ---- */
   --font-pixel: "Press Start 2P", "Courier New", monospace;
   --font-lcd: "Pixelify Sans", "Press Start 2P", monospace;
-  --font-body: "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-body: "Cozette", "Nunito", ui-rounded, system-ui, sans-serif;
 
   --text-3xs: 10px;
   --text-2xs: 11px;
