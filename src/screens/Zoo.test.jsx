@@ -5,12 +5,13 @@ import { MemoryRouter } from 'react-router-dom'
 vi.mock('../api/client.js', () => ({
   getZoo: vi.fn(),
   joinTeam: vi.fn(),
+  getPet: vi.fn(),
 }))
 
 import Zoo from './Zoo.jsx'
 import { PetProvider } from '../game/store.jsx'
 import * as engine from '../game/engine.js'
-import { getZoo, joinTeam } from '../api/client.js'
+import { getZoo, joinTeam, getPet } from '../api/client.js'
 
 function seedPet(over = {}) {
   const pet = { ...engine.createPet({ name: 'Mo', species: 'blip', shell: 'sky' }), ...over }
@@ -90,6 +91,35 @@ describe('Zoo screen', () => {
     await waitFor(() => expect(joinTeam).toHaveBeenCalledWith({ handle: 'dana.tngl.sh', team: 'acme' }))
     await waitFor(() => expect(getZoo.mock.calls.length).toBeGreaterThan(callsBefore))
     expect(await screen.findByText(/scoring their pull requests/i)).toBeInTheDocument()
+  })
+
+  it('opens the inspector when a real teammate is clicked', async () => {
+    seedPet({ handle: 'me.tngl.sh', team: 'acme', source: 'tangled' })
+    getZoo.mockResolvedValue({
+      ok: true,
+      status: 200,
+      data: {
+        team: 'acme',
+        configured: true,
+        members: [
+          { handle: 'me.tngl.sh', pet: { health: 90, band: 'sharp', state: 'active' } },
+          { handle: 'dana.tngl.sh', pet: { health: 40, band: 'mild', state: 'active' } },
+        ],
+      },
+    })
+    getPet.mockResolvedValue({
+      ok: true,
+      status: 200,
+      data: { handle: 'dana.tngl.sh', pet: { health: 40, band: 'mild', state: 'active', diagnosticCount: 3 }, prs: [], latestReasons: [], latestMedicine: [] },
+    })
+
+    renderZoo()
+    // Dana's creature name (derived from handle) renders on her card.
+    const danaCard = await screen.findByText('Dana')
+    fireEvent.click(danaCard)
+
+    await waitFor(() => expect(getPet).toHaveBeenCalledWith('dana.tngl.sh'))
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 
   it('offers a create-zoo form when the player has no team, then reveals add', async () => {

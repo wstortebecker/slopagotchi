@@ -57,4 +57,39 @@ describe("buildReceipt", () => {
     expect(r.latestReasons).toEqual(["new"]);
     expect(r.latestMedicine).toEqual(["newfix"]);
   });
+
+  it("carries the latest round's reasons/medicine/categories per PR (for inspection)", () => {
+    const r = buildReceipt([
+      diag({
+        prUri: "at://pr1",
+        round: 0,
+        score: 80,
+        reasons: ["round0 reason"],
+        medicine: ["round0 fix"],
+        createdAt: "2026-06-20T00:00:00Z",
+      }),
+      diag({
+        prUri: "at://pr1",
+        round: 1,
+        score: 20,
+        reasons: ["round1 reason"],
+        medicine: ["round1 fix"],
+        categories: {
+          scopeDiscipline: 5,
+          specificity: 4,
+          dependencyRestraint: 3,
+          testThoughtfulness: 2,
+          maintainability: 1,
+        },
+        confidence: "medium",
+        createdAt: "2026-06-21T00:00:00Z",
+      }),
+    ]);
+    const pr = r.prs[0];
+    // The latest round drives the per-PR "why", not round 0.
+    expect(pr.reasons).toEqual(["round1 reason"]);
+    expect(pr.medicine).toEqual(["round1 fix"]);
+    expect(pr.categories.scopeDiscipline).toBe(5);
+    expect(pr.confidence).toBe("medium");
+  });
 });

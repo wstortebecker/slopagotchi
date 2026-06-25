@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button, Card } from '../ds/index.js'
 import TopBar from '../components/TopBar.jsx'
 import ZooCard from '../components/ZooCard.jsx'
+import PetInspector from '../components/PetInspector.jsx'
 import { usePet } from '../game/store.jsx'
 import { TEAM, playerRow, rankZoo } from '../game/zoo.js'
 import { getZoo } from '../api/client.js'
@@ -158,6 +159,7 @@ export default function Zoo() {
   const team = pet?.team || ''
   const myHandle = norm(pet?.handle)
   const remote = useRemoteZoo(team)
+  const [inspect, setInspect] = useState(null)
 
   const live = remote.configured && remote.members.length > 0
 
@@ -222,12 +224,17 @@ export default function Zoo() {
               person={person}
               rank={i + 1}
               onOpen={() => {
+                // Your own pet → go play it. A real teammate → inspect why they
+                // scored what they did. (Demo roster pets have no handle.)
                 if (person.you) navigate('/play')
+                else if (person.handle) setInspect(person.handle)
               }}
             />
           ))}
         </div>
       </main>
+
+      {inspect && <PetInspector handle={inspect} onClose={() => setInspect(null)} />}
     </div>
   )
 }

@@ -17,6 +17,24 @@ export const SPECIES_IDS = [
   'piyo', 'usa', 'tato', 'devi', 'rex',
 ]
 
+/* The slop rubric (mirrors SLOP_CATEGORIES in lib/types.ts): label + max slop
+   points per dimension. Drives the per-PR breakdown bars in the inspector. */
+export const SLOP_CATEGORY_META = [
+  { key: 'scopeDiscipline', label: 'Scope discipline', max: 25 },
+  { key: 'specificity', label: 'Specificity & intent', max: 20 },
+  { key: 'dependencyRestraint', label: 'Dependency restraint', max: 20 },
+  { key: 'testThoughtfulness', label: 'Test thoughtfulness', max: 20 },
+  { key: 'maintainability', label: 'Maintainability', max: 15 },
+]
+
+/* Verdict → accent colour for badges in the inspector. */
+export const VERDICT_COLOR = {
+  clean: 'var(--health-thriving)',
+  minor: 'var(--health-ok)',
+  sloppy: 'var(--health-warning)',
+  severe: 'var(--health-dead)',
+}
+
 /**
  * Maps a pet-state record to a creature mood. Thresholds mirror the local
  * engine's deriveMood() so real and simulated pets share a vocabulary.

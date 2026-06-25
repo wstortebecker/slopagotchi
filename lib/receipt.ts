@@ -1,4 +1,4 @@
-import type { DiagnosticRecord } from "./types.js";
+import type { DiagnosticRecord, SlopCategories } from "./types.js";
 
 /** One PR's summary for the receipt view. */
 export interface PrSummary {
@@ -10,6 +10,11 @@ export interface PrSummary {
   delta?: number;
   rounds: number;
   createdAt: string;
+  /** The latest round's "why", carried per-PR so any PR can be inspected — not just the newest overall. */
+  reasons: string[];
+  medicine: string[];
+  categories: SlopCategories;
+  confidence: string;
 }
 
 export interface ReceiptData {
@@ -48,6 +53,10 @@ export function buildReceipt(diagnostics: DiagnosticRecord[]): ReceiptData {
       delta: prev ? latest.score - prev.score : undefined,
       rounds: sorted.length,
       createdAt: latest.createdAt,
+      reasons: latest.reasons,
+      medicine: latest.medicine,
+      categories: latest.categories,
+      confidence: latest.confidence,
     });
   }
 
