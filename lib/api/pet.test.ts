@@ -102,4 +102,20 @@ describe("handlePet", () => {
     expect(body.pet?.health).toBe(70);
     expect(body.prs).toEqual([]);
   });
+
+  it("uses a github:<login> subject directly, bypassing handle resolution", async () => {
+    const ghPet: PetStateRecord = { ...pet, subject: "github:octocat", handle: "octocat" };
+    vi.mocked(getCachedPetState).mockResolvedValue(ghPet);
+    vi.mocked(fetchDiagnosticsForSubject).mockResolvedValue([
+      diag({ subject: "github:octocat", source: "github", prUri: "github:o/r#5@abc" }),
+    ]);
+    const res = await handlePet("github:OctoCat");
+    expect(res.status).toBe(200);
+    const body = res.body as PetDTO;
+    expect(body.handle).toBe("github:octocat");
+    expect(body.pet?.subject).toBe("github:octocat");
+    expect(body.prs).toHaveLength(1);
+    expect(getDidForHandle).not.toHaveBeenCalled();
+    expect(getCachedPetState).toHaveBeenCalledWith("github:octocat");
+  });
 });

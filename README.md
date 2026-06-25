@@ -49,14 +49,17 @@ as **Vercel serverless functions** alongside the Vite SPA.
 
 ```
 api/                         thin Vercel function adapters (VercelRequest/Response)
-  join.ts                    POST  /api/join            register + start backfill
-  status/[handle].ts         GET   /api/status/:handle  join/backfill progress
-  cron/poll.ts               GET   /api/cron/poll        secured re-score (cron)
-  zoo/[team].ts              GET   /api/zoo/:team        a team's scored pets (JSON)
-  pet/[handle].ts            GET   /api/pet/:handle      one pet + slop receipt (JSON)
+  join.ts                    POST  /api/join              register + start backfill
+  status/[handle].ts         GET   /api/status/:handle    join/backfill progress
+  cron/poll.ts               GET   /api/cron/poll          secured re-score (cron)
+  zoo/[team].ts              GET   /api/zoo/:team          a team's scored pets (JSON)
+  pet/[handle].ts            GET   /api/pet/:handle        one pet + slop receipt (JSON)
+  github/standalone.ts       POST  /api/github/standalone  score a public GitHub user (no account)
+  github/link.ts             POST  /api/github/link        prove + link a GitHub user to a DID
 lib/                         framework-agnostic logic (fully unit-tested)
   api/                       pure core handlers → { status, body }
   atproto/                   handle→DID→PDS resolve, read pulls, write records
+  github/                    REST client, no-OAuth ownership proof, PR read layer
   scorer/                    diff prep → Featherless → parse/validate (Zod)
   pipeline.ts · health.ts · receipt.ts · store.ts (Upstash Redis)
 ```
@@ -70,9 +73,31 @@ and the UI stays on its local simulation.
 
 ### How the two halves connect
 
-- **Onboarding** collects a Tangled handle + team and calls `POST /api/join`.
+- **Onboarding** collects a Tangled handle + team and calls `POST /api/join`,
+  or a GitHub username and calls `POST /api/github/standalone`.
 - **The Zoo** loads `GET /api/zoo/:team` and renders real, scored pets.
 - **The play screen** shows a live **slop receipt** from `GET /api/pet/:handle`.
+
+### GitHub PRs (not just Tangled)
+
+Scoring is **source-agnostic**: the same pipeline scores Tangled pull rounds and
+GitHub PRs, and publishes the same `app.slopgotchi.*` records (tagged with their
+`source`). Two ways in:
+
+- **Standalone** (the low-friction default) — `POST /api/github/standalone`
+  `{ githubUsername }`. No atproto account, no proof: the data is public and the
+  subject *is* the GitHub identity, so the pet is keyed to `github:<login>`.
+  Set `GITHUB_TOKEN` to enable; without it the route 503s and the cron skips
+  GitHub. The pet + receipt are then served by `GET /api/pet/github:<login>`.
+- **Linked** (optional upgrade) — `POST /api/github/link` `{ handle|did,
+  githubUsername }`. A no-OAuth ownership proof (your handle/DID in your GitHub
+  bio or a public `slopgotchi-verify.md` gist) links the username to your DID
+  under first-prover-wins, so GitHub PRs feed the *same* pet as your Tangled
+  pulls. Linking is unify-going-forward: the username drops out of the standalone
+  poll set and new scores accrue under the DID.
+
+The daily cron drains Tangled and GitHub on **separate round budgets** so neither
+source starves the other.
 
 ### Environment
 

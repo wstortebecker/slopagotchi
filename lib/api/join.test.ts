@@ -107,4 +107,12 @@ describe("handleJoin", () => {
     const res = await handleJoin(input({ handle: "alice.tngl.sh", team: "Bad Team!" }));
     expect(res.status).toBe(400);
   });
+
+  it("registers teamlessly (personal roster) when no team is given (200)", async () => {
+    const res = await handleJoin(input({ handle: "alice.tngl.sh" }));
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ ok: true, did: "did:plc:dev", team: "" });
+    expect(registerAccount).toHaveBeenCalledWith("", "did:plc:dev", "alice.tngl.sh");
+    expect(scheduled).toHaveLength(1);
+  });
 });
