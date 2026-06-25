@@ -2,16 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
-vi.mock('../api/client.js', () => ({
-  getZoo: vi.fn(),
-  joinTeam: vi.fn(),
+vi.mock('../api/client.js', async (orig) => ({
+  ...(await orig()),
   getPet: vi.fn(),
+  joinTeam: vi.fn(),
+  connectGithubStandalone: vi.fn(),
 }))
 
 import Zoo from './Zoo.jsx'
 import { PetProvider } from '../game/store.jsx'
 import * as engine from '../game/engine.js'
-import { getZoo, joinTeam, getPet } from '../api/client.js'
+import { getPet, joinTeam, connectGithubStandalone } from '../api/client.js'
 
 function seedPet(over = {}) {
   const pet = { ...engine.createPet({ name: 'Mo', species: 'blip', shell: 'sky' }), ...over }
@@ -30,123 +31,76 @@ const renderZoo = () =>
 beforeEach(() => {
   localStorage.clear()
   vi.clearAllMocks()
+  getPet.mockResolvedValue({ ok: true, status: 200, data: { pet: null, prs: [], latestReasons: [], latestMedicine: [] } })
 })
 
-describe('Zoo screen', () => {
-  it('falls back to the demo roster when the pet has no team', () => {
+describe('Zoo screen (personal roster)', () => {
+  it('shows your pet and never the old demo roster', () => {
     seedPet({ handle: '', team: '' })
     renderZoo()
-    expect(screen.getByText('the team zoo')).toBeInTheDocument()
-    // A seed teammate from game/zoo.js.
-    expect(screen.getByText(/Jess Moreau/)).toBeInTheDocument()
-    expect(getZoo).not.toHaveBeenCalled()
-  })
-
-  it('renders the real team when the backend returns configured members', async () => {
-    seedPet({ handle: 'me.tngl.sh', team: 'acme', source: 'tangled' })
-    getZoo.mockResolvedValue({
-      ok: true,
-      status: 200,
-      data: {
-        team: 'acme',
-        configured: true,
-        members: [
-          { handle: 'dana.tngl.sh', pet: { health: 90, band: 'sharp', state: 'active' } },
-          { handle: 'me.tngl.sh', pet: { health: 30, band: 'sick', state: 'active' } },
-        ],
-      },
-    })
-
-    renderZoo()
-
-    await waitFor(() => expect(getZoo).toHaveBeenCalledWith('acme'))
-    // Real member's creature name (derived from handle) shows up...
-    expect(await screen.findByText('Dana')).toBeInTheDocument()
-    // ...and the demo roster does not.
+    expect(screen.getByRole('heading', { name: /your zoo/i })).toBeInTheDocument()
     expect(screen.queryByText(/Jess Moreau/)).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /acme zoo/i })).toBeInTheDocument()
+    // No team-slug gate.
+    expect(screen.queryByText(/start a team zoo/i)).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('acme')).not.toBeInTheDocument()
   })
 
-  it('adds a teammate to the team and refreshes the zoo', async () => {
-    seedPet({ handle: 'me.tngl.sh', team: 'acme', source: 'tangled' })
-    getZoo.mockResolvedValue({
-      ok: true,
-      status: 200,
-      data: {
-        team: 'acme',
-        configured: true,
-        members: [{ handle: 'me.tngl.sh', pet: { health: 90, band: 'sharp', state: 'active' } }],
-      },
-    })
-    joinTeam.mockResolvedValue({ ok: true, status: 200, data: { ok: true, state: 'backfilling' } })
+  it('adds a GitHub developer with no team slug', async () => {
+    seedPet({ handle: '', team: '' })
+    connectGithubStandalone.mockResolvedValue({ ok: true, status: 200, data: { ok: true, state: 'backfilling' } })
 
     renderZoo()
-    await waitFor(() => expect(getZoo).toHaveBeenCalled())
-    const callsBefore = getZoo.mock.calls.length
-
-    const input = await screen.findByPlaceholderText('filipstal.tngl.sh')
-    fireEvent.change(input, { target: { value: '@Dana.tngl.sh' } })
+    const input = screen.getByPlaceholderText('octocat') // GitHub is the default tab
+    fireEvent.change(input, { target: { value: '@OctoCat' } })
     fireEvent.click(screen.getByRole('button', { name: /add to zoo/i }))
 
-    await waitFor(() => expect(joinTeam).toHaveBeenCalledWith({ handle: 'dana.tngl.sh', team: 'acme' }))
-    await waitFor(() => expect(getZoo.mock.calls.length).toBeGreaterThan(callsBefore))
+    await waitFor(() =>
+      expect(connectGithubStandalone).toHaveBeenCalledWith({ githubUsername: 'octocat' }),
+    )
+    await waitFor(() => expect(getPet).toHaveBeenCalledWith('github:octocat'))
+    expect(joinTeam).not.toHaveBeenCalled()
     expect(await screen.findByText(/scoring their pull requests/i)).toBeInTheDocument()
   })
 
-  it('opens the inspector when a real teammate is clicked', async () => {
-    seedPet({ handle: 'me.tngl.sh', team: 'acme', source: 'tangled' })
-    getZoo.mockResolvedValue({
-      ok: true,
-      status: 200,
-      data: {
-        team: 'acme',
-        configured: true,
-        members: [
-          { handle: 'me.tngl.sh', pet: { health: 90, band: 'sharp', state: 'active' } },
-          { handle: 'dana.tngl.sh', pet: { health: 40, band: 'mild', state: 'active' } },
-        ],
-      },
-    })
+  it('adds a Tangled developer without requiring a team', async () => {
+    seedPet({ handle: '', team: '' })
+    joinTeam.mockResolvedValue({ ok: true, status: 200, data: { ok: true, state: 'backfilling' } })
+
+    renderZoo()
+    fireEvent.click(screen.getByRole('button', { name: /tangled\.org/i })) // switch source tab
+    const input = screen.getByPlaceholderText('filipstal.tngl.sh')
+    fireEvent.change(input, { target: { value: '@Dana.tngl.sh' } })
+    fireEvent.click(screen.getByRole('button', { name: /add to zoo/i }))
+
+    await waitFor(() => expect(joinTeam).toHaveBeenCalledWith({ handle: 'dana.tngl.sh' }))
+    await waitFor(() => expect(getPet).toHaveBeenCalledWith('dana.tngl.sh'))
+    expect(connectGithubStandalone).not.toHaveBeenCalled()
+  })
+
+  it('opens the inspector when a roster member is clicked', async () => {
+    seedPet({ handle: 'me.tngl.sh', team: '', source: 'tangled' })
+    localStorage.setItem('slop.roster', JSON.stringify([{ kind: 'github', id: 'octocat' }]))
     getPet.mockResolvedValue({
       ok: true,
       status: 200,
-      data: { handle: 'dana.tngl.sh', pet: { health: 40, band: 'mild', state: 'active', diagnosticCount: 3 }, prs: [], latestReasons: [], latestMedicine: [] },
+      data: { handle: 'github:octocat', pet: { health: 40, band: 'mild', state: 'active', diagnosticCount: 2 }, prs: [], latestReasons: [], latestMedicine: [] },
     })
 
     renderZoo()
-    // Dana's creature name (derived from handle) renders on her card.
-    const danaCard = await screen.findByText('Dana')
-    fireEvent.click(danaCard)
+    const card = await screen.findByText('Octocat') // petNameForHandle('octocat')
+    fireEvent.click(card)
 
-    await waitFor(() => expect(getPet).toHaveBeenCalledWith('dana.tngl.sh'))
+    await waitFor(() => expect(getPet).toHaveBeenCalledWith('github:octocat'))
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 
-  it('offers a create-zoo form when the player has no team, then reveals add', async () => {
-    seedPet({ handle: '', team: '' })
-    getZoo.mockResolvedValue({ ok: true, status: 200, data: { team: 'beta', configured: true, members: [] } })
-
+  it('removes a roster member', async () => {
+    seedPet({ handle: 'me.tngl.sh', team: '', source: 'tangled' })
+    localStorage.setItem('slop.roster', JSON.stringify([{ kind: 'github', id: 'octocat' }]))
     renderZoo()
-    expect(screen.getByText(/start a team zoo/i)).toBeInTheDocument()
-
-    fireEvent.change(screen.getByPlaceholderText('acme'), { target: { value: 'Beta' } })
-    fireEvent.click(screen.getByRole('button', { name: /create zoo/i }))
-
-    expect(await screen.findByPlaceholderText('filipstal.tngl.sh')).toBeInTheDocument()
-  })
-
-  it('keeps the demo roster when the backend is unconfigured', async () => {
-    seedPet({ handle: 'me.tngl.sh', team: 'acme', source: 'tangled' })
-    getZoo.mockResolvedValue({
-      ok: true,
-      status: 200,
-      data: { team: 'acme', configured: false, members: [] },
-    })
-
-    renderZoo()
-
-    await waitFor(() => expect(getZoo).toHaveBeenCalled())
-    expect(await screen.findByText(/Jess Moreau/)).toBeInTheDocument()
-    expect(screen.getByText(/Backend not connected yet/i)).toBeInTheDocument()
+    const remove = await screen.findByRole('button', { name: /remove octocat/i })
+    fireEvent.click(remove)
+    await waitFor(() => expect(screen.queryByText('Octocat')).not.toBeInTheDocument())
+    expect(JSON.parse(localStorage.getItem('slop.roster'))).toEqual([])
   })
 })

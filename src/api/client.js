@@ -23,12 +23,15 @@ async function request(path, init) {
   }
 }
 
-/** Register a Tangled handle into a team zoo and start its backfill. */
+/**
+ * Register a Tangled handle for scoring and start its backfill. `team` is
+ * optional — omit it for a personal-roster add (no team membership).
+ */
 export function joinTeam({ handle, team }) {
   return request('/join', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ handle, team }),
+    body: JSON.stringify(team ? { handle, team } : { handle }),
   })
 }
 

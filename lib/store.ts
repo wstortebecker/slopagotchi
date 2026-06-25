@@ -183,21 +183,29 @@ export interface Account {
   github?: string;
 }
 
-/** Registers (idempotently) a developer into a team, with handle↔DID mappings. */
+/**
+ * Registers (idempotently) a developer for scoring, with handle↔DID mappings.
+ * `team` is optional: a teamless registration (personal-roster add) still lands
+ * the DID in the global connected set the cron scans, just without joining a
+ * team roster. When a team is given the team membership is recorded too.
+ */
 export async function registerAccount(
-  team: string,
+  team: string | undefined,
   did: string,
   handle: string,
 ): Promise<void> {
   const redis = getRedis();
   const h = normalizeHandle(handle);
-  await Promise.all([
-    redis.sadd(teamDidsKey(team), did),
+  const t = String(team ?? "").toLowerCase().trim();
+  const ops: Promise<unknown>[] = [
     redis.sadd(CONNECTED_DIDS_KEY, did),
-    redis.sadd(TEAMS_KEY, team),
-    redis.hset(accountKey(did), { handle: h, team }),
+    redis.hset(accountKey(did), { handle: h, team: t }),
     redis.set(handleKey(h), did),
-  ]);
+  ];
+  if (t) {
+    ops.push(redis.sadd(teamDidsKey(t), did), redis.sadd(TEAMS_KEY, t));
+  }
+  await Promise.all(ops);
 }
 
 export async function getAccount(did: string): Promise<Account | null> {

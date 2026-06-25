@@ -28,7 +28,7 @@ export function maxBackfillRounds(): number {
 const TEAM_RE = /^[a-z0-9][a-z0-9-]{0,38}$/;
 
 export interface JoinInput {
-  /** Parsed request body: `{ handle, team }`. */
+  /** Parsed request body: `{ handle, team? }` — team is optional (personal roster). */
   body: unknown;
   /** Best-effort client IP for rate limiting. */
   ip: string;
@@ -44,10 +44,12 @@ export async function handleJoin({ body, ip, schedule }: JoinInput): Promise<Api
   if (!handle) {
     return { status: 400, body: { error: "A handle is required." } };
   }
-  if (!TEAM_RE.test(team)) {
+  // A team is optional (a personal-roster add registers a dev for scoring with
+  // no team). If one is given it must be a valid slug.
+  if (team && !TEAM_RE.test(team)) {
     return {
       status: 400,
-      body: { error: "A team slug is required (letters, numbers, hyphens)." },
+      body: { error: "A team slug must be letters, numbers, or hyphens." },
     };
   }
 
