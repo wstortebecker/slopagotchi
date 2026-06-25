@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button, DeviceShell, PetScene, PixelIcon, SPECIES_LIST } from '../ds/index.js'
 import Logo from '../ds/Logo.jsx'
+import CaseStudies from '../components/CaseStudies.jsx'
+import SiteFooter from '../components/SiteFooter.jsx'
 import { applyShellTheme, getStoredShell, usePet } from '../game/store.jsx'
 
 const SHELLS = ['bubblegum', 'sky', 'lemon', 'lime', 'grape', 'tangerine']
@@ -28,6 +30,14 @@ function MarketingNav() {
     >
       <div className="container" style={{ display: 'flex', alignItems: 'center', height: 72 }}>
         <Logo size={32} />
+        <Link
+          to="/blog"
+          style={{ marginLeft: 'auto', fontSize: 14, fontWeight: 800, color: 'var(--ink-2)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ink-2)')}
+        >
+          Blog
+        </Link>
       </div>
     </header>
   )
@@ -142,15 +152,16 @@ export default function Landing() {
               }}
             >
               <PixelIcon name="heart" scale={2.5} color="var(--accent-press)" />
-              a virtual pet for people who still write code
+              a virtual pet for everyone who ships with AI
             </div>
             <h1 className="pixel-display" style={{ fontSize: 'clamp(30px, 4.4vw, 52px)', margin: 0 }}>
               a pet that lives off your <span style={{ color: 'var(--accent)' }}>clean code</span>.
             </h1>
             <p style={{ fontSize: 19, lineHeight: 1.55, color: 'var(--ink-2)', fontWeight: 600, margin: '22px 0 0', maxWidth: 520 }}>
-              Slopagotchi hatches on your desk and feeds on real commits. Ship a little AI slop and it
-              gets queasy. Ship a lot and, well&hellip; it has opinions about that. Loud,
-              passive-aggressive opinions.
+              Slopagotchi hatches on your desk and feeds on real commits. AI slop is free to make and
+              paid for forever&hellip; in storage, in compute, in the data centers everyone wants to
+              fling into orbit. Cut it at the source and your pet thrives. Ship a lot and, well&hellip;
+              it has loud, passive-aggressive opinions.
             </p>
             <div style={{ marginTop: 32 }}>
               <Button size="lg" pixel={false} onClick={onCta}>
@@ -162,6 +173,10 @@ export default function Landing() {
           <HeroDevice shell={shell} onShell={onShell} />
         </div>
       </section>
+
+      <CaseStudies />
+
+      <SiteFooter />
     </div>
   )
 }

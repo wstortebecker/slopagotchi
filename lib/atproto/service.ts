@@ -52,6 +52,32 @@ export async function fetchPetState(
   }
 }
 
+/** Lists every developer's pet-state record from the service repo (paginated). */
+export async function listAllPetStates(): Promise<PetStateRecord[]> {
+  const { did, agent } = await getServiceReadTarget();
+  const out: PetStateRecord[] = [];
+  let cursor: string | undefined;
+  const seen = new Set<string>();
+
+  while (true) {
+    const res = await agent.com.atproto.repo.listRecords({
+      repo: did,
+      collection: PET_STATE_COLLECTION,
+      limit: 100,
+      cursor,
+    });
+    for (const rec of res.data.records) {
+      const parsed = PetStateRecordSchema.safeParse(rec.value);
+      if (parsed.success) out.push(parsed.data);
+    }
+    const next = res.data.cursor;
+    if (!next || res.data.records.length === 0 || seen.has(next)) break;
+    seen.add(next);
+    cursor = next;
+  }
+  return out;
+}
+
 /** Lists a subject's diagnostics from the service repo (paginated, filtered by subject). */
 export async function fetchDiagnosticsForSubject(
   subjectDid: string,
