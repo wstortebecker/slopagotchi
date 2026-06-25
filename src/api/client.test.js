@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { joinTeam, getStatus, getZoo, getPet } from './client.js'
+import { joinTeam, getStatus, getZoo, getPet, getScoreboard } from './client.js'
 
 const realFetch = global.fetch
 
@@ -58,6 +58,13 @@ describe('client', () => {
     mockFetch(async () => ({ ok: true, status: 200, json: async () => ({ members: [] }) }))
     const res = await getZoo('acme')
     expect(global.fetch.mock.calls[0][0]).toBe('/api/zoo/acme')
+    expect(res.ok).toBe(true)
+  })
+
+  it('hits the scoreboard endpoint', async () => {
+    mockFetch(async () => ({ ok: true, status: 200, json: async () => ({ configured: true, developers: [] }) }))
+    const res = await getScoreboard()
+    expect(global.fetch.mock.calls[0][0]).toBe('/api/scoreboard')
     expect(res.ok).toBe(true)
   })
 
