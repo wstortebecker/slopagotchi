@@ -1,4 +1,4 @@
-import { Card, LcdScreen, Pet, PixelIcon, StatMeter, StatusBadge } from '../ds/index.js'
+import { Card, LcdScreen, PetScene, PixelIcon, StatMeter, StatusBadge } from '../ds/index.js'
 
 const MOOD_TO_STATUS = {
   thriving: 'thriving',
@@ -61,8 +61,11 @@ export default function ZooCard({ person, rank, onOpen }) {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <LcdScreen width={160} height={108} lit={!dead}>
-          <Pet species={person.species} mood={person.mood} scale={5} animate={!dead} />
+        <LcdScreen width={160} height={108} lit={!dead} fill>
+          {/* PetScene (not the bare Pet) so the tile shows the same mood-driven
+              scenes as My Pet — thermometer when sick, hospital rig when
+              critical, the gallows when it's over. */}
+          <PetScene species={person.species} mood={person.mood} scale={5} />
         </LcdScreen>
       </div>
 
