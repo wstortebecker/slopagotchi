@@ -16,12 +16,15 @@
   "dependencies": {
     "@atproto/api": "^0.20.20",
     "@atproto/identity": "^0.5.1",
+    "@clerk/backend": "^3.8.3",
+    "@clerk/clerk-react": "^5.61.8",
     "@upstash/redis": "^1.38.0",
     "@vercel/functions": "^2.0.0",
     "openai": "^6.44.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
+    "stripe": "^22.3.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

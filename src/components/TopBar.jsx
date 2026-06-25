@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { UserButton } from '@clerk/clerk-react'
 import Logo from '../ds/Logo.jsx'
 import PixelIcon from '../ds/PixelIcon.jsx'
 import { usePet } from '../game/store.jsx'
@@ -105,6 +106,7 @@ export default function TopBar({ active = 'mine', className = '' }) {
           </span>
           LV {level}
         </div>
+        <UserButton afterSignOutUrl="/" />
       </div>
     </header>
   )
